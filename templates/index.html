@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Principal - Centro Geriátrico</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Font Awesome para iconos adicionales -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        .card-menu {
+            transition: transform 0.2s;
+            height: 100%;
+            min-height: 280px;
+            border: 1px solid rgba(0,0,0,0.125);
+        }
+        .card-menu:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .icono {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+        .card-menu .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        .btn-modulo {
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .descripcion-modulo {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            color: #666;
+        }
+    </style>
+</head>
+
+<body class="bg-light">
+
+<nav class="navbar navbar-dark bg-primary shadow-sm">
+    <div class="container-fluid">
+        <span class="navbar-brand fw-bold">
+            <i class="fas fa-home me-2"></i>Centro Geriátrico Camino Dorado
+        </span>
+        <div class="text-white d-flex align-items-center">
+            <i class="fas fa-user-circle me-2"></i>
+            <span class="me-3">{{ current_user.nombre }} ({{ current_user.rol }})</span>
+            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-light">
+                <i class="fas fa-sign-out-alt me-1"></i> Salir
+            </a>
+        </div>
+    </div>
+</nav>
+
+<!-- MENSAJES FLASH -->
+<div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+</div>
+
+<div class="container mt-4">
+    <div class="mb-4">
+        <h4 class="mb-0">
+            <i class="fas fa-tachometer-alt me-2 text-primary"></i>Panel Principal
+        </h4>
+        <p class="text-muted mb-0">Seleccione un módulo para comenzar</p>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- ADMINISTRADOR -->
+        {% if current_user.rol == 'administrador' %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-cogs icono text-primary"></i>
+                    <h6 class="mb-3">Administración General</h6>
+                    <div class="d-grid gap-2">
+                        <a href="/admin/usuarios" class="btn btn-outline-primary btn-modulo">
+                            <i class="fas fa-users me-1"></i> Usuarios
+                        </a>
+                        <a href="/roles" class="btn btn-outline-primary btn-modulo">
+                            <i class="fas fa-user-tag me-1"></i> Roles
+                        </a>
+                        <a href="/bitacora-accesos" class="btn btn-outline-primary btn-modulo">
+                            <i class="fas fa-clipboard-list me-1"></i> Bitácora
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- MÉDICO -->
+        {% if current_user.rol in ['medico', 'personal_salud', 'administrador'] %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-heartbeat icono text-success"></i>
+                    <h6 class="mb-3">Módulo Médico</h6>
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="/residentes" class="btn btn-outline-success btn-modulo">
+                            <i class="fas fa-search me-1"></i> Buscar Residente
+                        </a>
+                        <a href="/create" class="btn btn-success btn-modulo">
+                            <i class="fas fa-user-plus me-1"></i> Nuevo Residente
+                        </a>
+                    </div>
+                    <p class="descripcion-modulo mb-0">
+                        Gestión completa de residentes y su historial clínico
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- BITÁCORA CLÍNICA -->
+        {% if current_user.rol in ['cuidador', 'administrador', 'enfermeria', 'medico', 'personal_salud'] %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-clipboard-check icono text-warning"></i>
+                    <h6 class="mb-3">Bitácora Clínica</h6>
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="/bitacora/buscar-paciente" class="btn btn-warning btn-modulo">
+                            <i class="fas fa-search me-1"></i> Buscar Paciente
+                        </a>
+                        {% if current_user.rol in ['administrador', 'supervisor', 'medico'] %}
+                        <a href="{{ url_for('reporte_bitacora_diario') }}" 
+                           class="btn btn-outline-warning btn-modulo">
+                            <i class="fas fa-chart-bar me-1"></i> Reportes
+                        </a>
+                        {% endif %}
+                    </div>
+                    <p class="descripcion-modulo mb-0">
+                        Registro diario de actividades y seguimiento de pacientes
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ENFERMERÍA / MEDICACIONES -->
+        {% if current_user.rol in ['enfermeria', 'administrador'] %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-pills icono text-info"></i>
+                    <h6 class="mb-3">Gestión de Medicación</h6>
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="/medicaciones/tratamientos-activos" class="btn btn-outline-info btn-modulo">
+                            <i class="fas fa-prescription me-1"></i> Asignación
+                        </a>
+                        <a href="/control-diario-medicacion" class="btn btn-outline-info btn-modulo">
+                            <i class="fas fa-calendar-check me-1"></i> Control Diario
+                        </a>
+                        <a href="/alertas-medicacion" class="btn btn-outline-info btn-modulo">
+                            <i class="fas fa-bell me-1"></i> Alertas
+                        </a>
+                    </div>
+                    <p class="descripcion-modulo mb-0">
+                        Control y administración de medicamentos
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- MÓDULO DE CAMAS -->
+        {% if current_user.rol in ['administrador', 'enfermeria', 'medico'] %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-bed icono text-secondary"></i>
+                    <h6 class="mb-3">Gestión de Camas</h6>
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{{ url_for('listar_camas') }}" class="btn btn-outline-secondary btn-modulo">
+                            <i class="fas fa-list me-1"></i> Ver Camas
+                        </a>
+                        
+                        {% if current_user.rol in ['administrador', 'enfermeria'] %}
+<a href="{{ url_for('seleccionar_residente_asignacion') }}" class="btn btn-outline-secondary btn-modulo">
+    <i class="fas fa-user-plus me-1"></i> Asignar Cama
+</a>
+{% endif %}
+                        
+                        <a href="{{ url_for('dashboard_camas') }}" class="btn btn-secondary btn-modulo">
+                            <i class="fas fa-chart-bar me-1"></i> Dashboard
+                        </a>
+                    </div>
+                    <p class="descripcion-modulo mb-0">
+                        Control de ocupación y asignación de camas
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- INVENTARIOS -->
+        {% if current_user.rol in ['bodega', 'farmacia', 'administrador'] %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-boxes icono text-danger"></i>
+                    <h6 class="mb-3">Inventarios</h6>
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="/inventario" class="btn btn-outline-danger btn-modulo">
+                            <i class="fas fa-box me-1"></i> Insumos
+                        </a>
+                        <a href="/ordenes-compra" class="btn btn-outline-danger btn-modulo">
+                            <i class="fas fa-shopping-cart me-1"></i> Órdenes
+                        </a>
+                        <a href="/proveedores" class="btn btn-outline-danger btn-modulo">
+                            <i class="fas fa-truck me-1"></i> Proveedores
+                        </a>
+                    </div>
+                    <p class="descripcion-modulo mb-0">
+                        Control de inventario y proveedores
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+<!-- MODAL AVISO ACADÉMICO -->
+{% if session.get('mostrar_modal') %}
+<div class="modal fade" id="modalAviso" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-graduation-cap me-2"></i>
+                    Aviso Académico - Tesina de Bachillerato
+                </h5>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-university text-primary" style="font-size: 3rem;"></i>
+                    <h6 class="mt-2 text-primary">Universidad Hispanoamericana</h6>
+                </div>
+                
+                <div class="alert alert-info">
+                    <h6 class="alert-heading">Propósito del Sistema</h6>
+                    <p class="mb-0">
+                        Este software ha sido desarrollado exclusivamente con fines académicos 
+                        como parte del proyecto de tesina para optar por el grado de 
+                        <strong>Bachillerato en Ingeniería en Informática</strong>.
+                    </p>
+                </div>
+                
+                <div class="alert alert-warning">
+                    <h6 class="alert-heading">Declaración de Datos</h6>
+                    <p class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        <strong>Todos los datos son ficticios:</strong> La información mostrada 
+                        en este sistema es completamente simulada y no corresponde a datos 
+                        reales de pacientes, personal médico o cualquier entidad real.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Entiendo y acepto
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Auto cerrar alertas después de 5 segundos
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    });
+
+    // Mostrar modal solo una vez
+    {% if session.get('mostrar_modal') %}
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl = document.getElementById('modalAviso');
+        if (modalEl) {
+            const modal = new bootstrap.Modal(modalEl);
+            modal.show();
+
+            // Limpiar la sesión para no mostrar el modal nuevamente
+            fetch("{{ url_for('limpiar_modal') }}", { 
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
+    });
+    {% endif %}
+</script>
+
+</body>
+</html>

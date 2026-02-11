@@ -1,0 +1,167 @@
+{% include 'header.html' %}
+
+<!-- Navbar (Header) -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="/">Centro Geriátrico Camino Dorado</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+      aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="#servicios">Servicios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#galeria">Galería</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#testimonios">Testimonios</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#contacto">Contacto</a>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-outline-primary" href="/login" role="button">Iniciar Sesión</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<div class="container mt-5 pt-5">
+  <!-- Sección de Bienvenida -->
+  <section class="text-center mb-5">
+    <h1 class="display-3">Bienvenidos al Centro Geriátrico Camino Dorado</h1>
+    <p class="lead">Un lugar donde nuestros mayores reciben atención y cariño</p>
+    <p>
+      <a href="#servicios" class="btn btn-primary btn-lg">Conoce nuestros servicios</a>
+    </p>
+  </section>
+
+  <!-- Sección de Servicios -->
+  <section id="servicios" class="mb-5">
+    <h2 class="text-center mb-4">Nuestros Servicios</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <img src="https://via.placeholder.com/350x250" class="card-img-top" alt="Atención médica">
+          <div class="card-body">
+            <h5 class="card-title">Atención Médica</h5>
+            <p class="card-text">Contamos con médicos y personal de salud altamente capacitado para atender las necesidades médicas de nuestros residentes.</p>
+            <a href="#" class="btn btn-primary">Más Información</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <img src="https://via.placeholder.com/350x250" class="card-img-top" alt="Recreación">
+          <div class="card-body">
+            <h5 class="card-title">Actividades Recreativas</h5>
+            <p class="card-text">Ofrecemos una variedad de actividades recreativas para mantener la mente activa y el cuerpo saludable.</p>
+            <a href="#" class="btn btn-primary">Más Información</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <img src="https://via.placeholder.com/350x250" class="card-img-top" alt="Alimentación">
+          <div class="card-body">
+            <h5 class="card-title">Alimentación Balanceada</h5>
+            <p class="card-text">Preparación de comidas balanceadas adaptadas a las necesidades de nuestros residentes, con dietas personalizadas.</p>
+            <a href="#" class="btn btn-primary">Más Información</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de Galería -->
+  <section id="galeria" class="mb-5">
+    <h2 class="text-center mb-4">Galería de Imágenes</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card">
+          <img src="https://via.placeholder.com/350x250" class="card-img-top" alt="Imagen 1">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <img src="https://via.placeholder.com/350x250" class="card-img-top" alt="Imagen 2">
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <img src="https://via.placeholder.com/350x250" class="card-img-top" alt="Imagen 3">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de Testimonios -->
+  <section id="testimonios" class="bg-light py-5 mb-5">
+    <h2 class="text-center mb-4">Lo que dicen nuestros residentes</h2>
+    <div class="row">
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <p class="card-text">"El centro me ha dado todo lo que necesito, tanto en cuidados médicos como en actividades recreativas. Me siento como en casa."</p>
+            <footer class="blockquote-footer">María Gómez, residente</footer>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <p class="card-text">"Mi padre está muy bien atendido aquí. El personal es muy amable y siempre está pendiente de él."</p>
+            <footer class="blockquote-footer">Carlos Martínez, hijo de residente</footer>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <p class="card-text">"El ambiente es cálido y acogedor. Me siento seguro y rodeado de gente que se preocupa por mí."</p>
+            <footer class="blockquote-footer">Antonio Rodríguez, residente</footer>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección de Contacto -->
+  <section id="contacto" class="mb-5">
+    <h2 class="text-center mb-4">Contáctanos</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <p class="lead">Estamos aquí para ayudarte. Si tienes alguna pregunta o deseas obtener más información, no dudes en contactarnos.</p>
+        <ul class="list-unstyled">
+          <li><i class="bi bi-telephone"></i> Teléfono: (123) 456-7890</li>
+          <li><i class="bi bi-envelope"></i> Email: info@centrogeriatrico.com</li>
+          <li><i class="bi bi-geo-alt"></i> Dirección: Calle Ficticia 123, Ciudad Geriátrica</li>
+        </ul>
+      </div>
+      <div class="col-md-6">
+        <h4>Formulario de Contacto</h4>
+        <form action="/contacto" method="POST">
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required>
+          </div>
+          <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+          </div>
+          <div class="mb-3">
+            <label for="mensaje" class="form-label">Mensaje</label>
+            <textarea class="form-control" id="mensaje" name="mensaje" rows="4" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Enviar</button>
+        </form>
+      </div>
+    </div>
+  </section>
+</div>
+
+{% include 'footer.html' %}

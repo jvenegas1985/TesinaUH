@@ -1,0 +1,212 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+<div class="container py-5">
+  <h1 class="mb-4 fw-bold text-primary">Administración de Usuarios</h1>
+
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ messages[0] }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#userModal">
+      <i class="bi bi-plus-lg me-1"></i> Nuevo Usuario
+    </button>
+    <input type="search" id="searchUser" class="form-control w-25" placeholder="Buscar usuario...">
+  </div>
+
+  <div class="table-responsive shadow-sm rounded">
+    <table class="table table-striped table-hover align-middle mb-0">
+      <thead class="table-primary">
+        <tr>
+          <th>ID</th>
+          <th>Usuario</th>
+          <th>Correo</th>
+          <th>Nombre</th>
+          <th>Rol</th>
+          <th>Activo</th>
+          <th class="text-center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody">
+        {% for u in usuarios %}
+        <tr>
+          <td>{{ u.id }}</td>
+          <td>{{ u.username }}</td>
+          <td>{{ u.correo }}</td>
+          <td>{{ u.nombre or '-' }}</td>
+          <td>
+            {% if u.rol == 'administrador' %}Administrador{% endif %}
+            {% if u.rol == 'medico' %}Médico{% endif %}
+            {% if u.rol == 'enfermeria' %}Enfermería{% endif %}
+            {% if u.rol == 'cuidador' %}Cuidador{% endif %}
+            {% if u.rol == 'bodega' %}Bodega / Insumos{% endif %}
+            {% if u.rol == 'farmacia' %}Farmacia{% endif %}
+            {% if u.rol == 'personal_salud' %}Personal de Salud{% endif %}
+          </td>
+          <td>
+            {% if u.activo %}
+              <span class="badge bg-success">Sí</span>
+            {% else %}
+              <span class="badge bg-secondary">No</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-warning me-1"
+              onclick="openEditModal(
+                {{ u.id }},
+                '{{ u.username }}',
+                '{{ u.correo }}',
+                '{{ u.nombre }}',
+                '{{ u.rol }}',
+                {{ 1 if u.activo else 0 }}
+              )"
+              title="Editar">
+              <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-danger"
+              data-bs-toggle="modal"
+              data-bs-target="#deleteUserModal"
+              data-user-id="{{ u.id }}"
+              data-user-name="{{ u.username }}"
+              title="Eliminar">
+              <i class="bi bi-trash-fill"></i>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Nuevo Usuario -->
+<div class="modal fade" id="userModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="post" action="{{ url_for('crear_usuario') }}" class="modal-content shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">Nuevo Usuario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input name="username" class="form-control mb-3" placeholder="Usuario" required>
+        <input name="correo" type="email" class="form-control mb-3" placeholder="Correo" required>
+        <input name="password" type="password" class="form-control mb-3" placeholder="Contraseña" required>
+        <input name="nombre" class="form-control mb-3" placeholder="Nombre">
+
+        <select name="rol" class="form-select mb-3" required>
+          <option value="" disabled selected>Seleccione un rol</option>
+          <option value="administrador">Administrador</option>
+          <option value="medico">Médico</option>
+          <option value="enfermeria">Enfermería</option>
+          <option value="cuidador">Cuidador</option>
+          <option value="bodega">Bodega / Insumos</option>
+          <option value="farmacia">Farmacia</option>
+          <option value="personal_salud">Personal de Salud</option>
+        </select>
+
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" name="activo" checked>
+          <label class="form-check-label">Activo</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-primary fw-bold">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar Usuario -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="post" id="editUserForm" class="modal-content shadow">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">Editar Usuario</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" name="id" id="editUserId">
+        <input name="username" id="editUsername" class="form-control mb-3" required>
+        <input name="correo" id="editCorreo" type="email" class="form-control mb-3" required>
+        <input name="password" type="password" class="form-control mb-3" placeholder="Nueva contraseña (opcional)">
+        <input name="nombre" id="editNombre" class="form-control mb-3">
+
+        <select name="rol" id="editRol" class="form-select mb-3" required>
+          <option value="administrador">Administrador</option>
+          <option value="medico">Médico</option>
+          <option value="enfermeria">Enfermería</option>
+          <option value="cuidador">Cuidador</option>
+          <option value="bodega">Bodega / Insumos</option>
+          <option value="farmacia">Farmacia</option>
+          <option value="personal_salud">Personal de Salud</option>
+        </select>
+
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" name="activo" id="editActivo">
+          <label class="form-check-label">Activo</label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-warning fw-bold">Guardar cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Eliminar -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="post" id="deleteUserForm" class="modal-content shadow">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Eliminar Usuario</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ¿Desea eliminar al usuario <strong id="deleteUserName"></strong>?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Cancelar</button>
+        <button type="submit" class="btn btn-danger fw-bold">Eliminar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+<script>
+function openEditModal(id, username, correo, nombre, rol, activo) {
+  const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+  document.getElementById('editUserId').value = id;
+  document.getElementById('editUsername').value = username;
+  document.getElementById('editCorreo').value = correo;
+  document.getElementById('editNombre').value = nombre || '';
+  document.getElementById('editRol').value = rol;
+  document.getElementById('editActivo').checked = activo === 1;
+  document.getElementById('editUserForm').action = `/admin/usuarios/editar/${id}`;
+  modal.show();
+}
+
+document.getElementById('deleteUserModal').addEventListener('show.bs.modal', function (event) {
+  const button = event.relatedTarget;
+  document.getElementById('deleteUserName').textContent = button.dataset.userName;
+  document.getElementById('deleteUserForm').action = `/admin/usuarios/eliminar/${button.dataset.userId}`;
+});
+
+document.getElementById('searchUser').addEventListener('input', function () {
+  const filter = this.value.toLowerCase();
+  document.querySelectorAll('#userTableBody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+  });
+});
+</script>
+
+{% include 'footer.html' %}

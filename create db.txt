@@ -1,0 +1,23 @@
+CREATE TABLE `usuarios` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `username` varchar(100) NOT NULL,
+  `correo` varchar(100) DEFAULT NULL,
+  `password` varchar(255) NOT NULL,
+  `rol` enum('administrador','personal_salud','cuidador','familiar') NOT NULL,
+  `nombre` varchar(100) DEFAULT NULL,
+  `apellido` varchar(100) DEFAULT NULL,
+  `telefono` varchar(20) DEFAULT NULL,
+  `activo` tinyint(1) NOT NULL DEFAULT '1',
+  `fecha_creacion` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `ultima_conexion` timestamp NULL DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username_UNIQUE` (`username`),
+  UNIQUE KEY `correo_UNIQUE` (`correo`),
+  KEY `idx_rol` (`rol`)
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+INSERT INTO `proyecto`.`usuarios`
+(`id`, `username`, `correo`, `password`, `rol`, `nombre`, `apellido`, `telefono`, `activo`, `fecha_creacion`)
+VALUES
+(1, 'admin', 'jeffrivg@gmail.com', '123', 'administrador', 'Jeffry', 'Venegas', '84809871', 1, NOW());

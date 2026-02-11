@@ -1,0 +1,199 @@
+{% include '/modulos/clientes/admin_header.html' %}
+<h4>Agregar Nuevo Registro</h4>
+{% if mensaje == 'faltan_campos' %}
+  <div class="alert alert-danger text-center">
+    Debes seleccionar todos los campos de “Género”, “Estado Civil”, “Movilidad” y “Estado Mental”.
+  </div>
+{% elif mensaje == 'existe' %}
+  <div class="alert alert-warning text-center">
+    Esta cédula ya está registrada en el sistema.
+  </div>
+{% elif mensaje == 'error_insercion' %}
+  <div class="alert alert-danger text-center">
+    Ocurrió un error al guardar: {{ error_detalle }}
+  </div>
+{% elif mensaje == 'insertado' %}
+  <div class="alert alert-success text-center">
+    Residente agregado correctamente.
+  </div>
+{% endif %}
+
+<form action="/modulos/clientes/create/guardar" method="POST" id="guardar">
+  <div class="row g-4">
+
+    <!-- Columna 1 -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3"><i class="bi bi-person"></i> Información Personal</h5>
+
+          <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" name="nombre" id="nombre" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="apellido1" class="form-label">Primer Apellido</label>
+            <input type="text" class="form-control" name="apellido1" id="apellido1" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="apellido2" class="form-label">Segundo Apellido</label>
+            <input type="text" class="form-control" name="apellido2" id="apellido2" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="cedula" class="form-label">Cédula</label>
+            <input type="text" class="form-control" name="cedula" id="cedula" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
+            <input type="date" class="form-control" name="fecha_nacimiento" id="fecha_nacimiento" required>
+          </div>
+
+          <div class="mb-3">
+  <label for="genero" class="form-label">Género</label>
+  <select class="form-select" name="genero" id="genero" required>
+    <option value="" disabled {% if not genero %}selected{% endif %}>Seleccione</option>
+    <option value="Masculino" {% if genero == 'Masculino' %}selected{% endif %}>Masculino</option>
+    <option value="Femenino" {% if genero == 'Femenino' %}selected{% endif %}>Femenino</option>
+    <option value="Otro" {% if genero == 'Otro' %}selected{% endif %}>Otro</option>
+  </select>
+</div>
+
+          <div class="mb-3">
+  <label for="estado_civil" class="form-label">Estado Civil</label>
+  <select class="form-select" name="estado_civil" id="estado_civil" required>
+    <option value="" disabled {% if not estado_civil %}selected{% endif %}>Seleccione</option>
+    <option value="Soltero" {% if estado_civil == 'Soltero' %}selected{% endif %}>Soltero</option>
+    <option value="Casado" {% if estado_civil == 'Casado' %}selected{% endif %}>Casado</option>
+    <option value="Viudo" {% if estado_civil == 'Viudo' %}selected{% endif %}>Viudo</option>
+    <option value="Divorciado" {% if estado_civil == 'Divorciado' %}selected{% endif %}>Divorciado</option>
+  </select>
+</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna 2 -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3"><i class="bi bi-house-door"></i> Contacto y Dirección</h5>
+
+          <div class="mb-3">
+            <label for="pais_nacimiento" class="form-label">País de Nacimiento</label>
+            <input type="text" class="form-control" name="pais_nacimiento" id="pais_nacimiento" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="direccion" class="form-label">Dirección</label>
+            <textarea class="form-control" name="direccion" id="direccion" rows="2" required></textarea>
+          </div>
+
+          <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="tel" class="form-control" name="telefono" id="telefono" required>
+            <small class="form-text text-muted">Sin guiones ni espacios.</small>
+          </div>
+
+          <div class="mb-3">
+            <label for="nombre_contacto_emergencia" class="form-label">Nombre Contacto Emergencia</label>
+            <input type="text" class="form-control" name="nombre_contacto_emergencia" id="nombre_contacto_emergencia" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="telefono_emergencia" class="form-label">Teléfono Emergencia</label>
+            <input type="text" class="form-control" name="telefono_emergencia" id="telefono_emergencia" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="parentesco" class="form-label">Parentesco</label>
+            <input type="text" class="form-control" name="contacto_emergencia_parentesco" id="parentesco" required>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Columna 3 -->
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card shadow-sm rounded-4">
+        <div class="card-body">
+          <h5 class="card-title mb-3"><i class="bi bi-clipboard-heart"></i> Salud</h5>
+
+          <div class="mb-3">
+  <label for="movilidad" class="form-label">Movilidad</label>
+  <select class="form-select" name="movilidad" id="movilidad" required>
+    <option value="" disabled {% if not movilidad %}selected{% endif %}>Seleccione</option>
+    <option value="Independiente" {% if movilidad == 'Independiente' %}selected{% endif %}>Independiente</option>
+    <option value="Con ayuda" {% if movilidad == 'Con ayuda' %}selected{% endif %}>Con Ayuda</option>
+    <option value="Dependiente" {% if movilidad == 'Dependiente' %}selected{% endif %}>Dependiente</option>
+  </select>
+</div>
+
+          <div class="mb-4">
+  <label for="estado_mental" class="form-label">Estado Mental</label>
+  <select class="form-select" name="estado_mental" id="estado_mental" required>
+    <option value="" disabled {% if not estado_mental %}selected{% endif %}>Seleccione</option>
+    <option value="Lúcido" {% if estado_mental == 'Lúcido' %}selected{% endif %}>Lúcido</option>
+    <option value="Desorientado" {% if estado_mental == 'Desorientado' %}selected{% endif %}>Desorientado</option>
+    <option value="Demencia" {% if estado_mental == 'Demencia' %}selected{% endif %}>Demencia</option>
+  </select>
+</div>
+          <div class="d-grid mt-4">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save"></i> Guardar Registro
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</form>
+
+<br />
+<br />
+
+<div class="card-footer text-muted"></div>
+
+<!-- Modal -->
+<div class="modal" id="resultadoModal" tabindex="-1" aria-labelledby="resultadoModalLabel"
+  data-bs-backdrop="static" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="resultadoModalLabel">Resultado</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        {% if mensaje == 'existe' %}
+        Esta cédula ya está registrada en el sistema. Por favor verifique los datos
+        {% elif mensaje == 'insertado' %}
+        Registro de Residente Agregado Correctamente.
+        {% elif mensaje == 'no_existe' %}
+        Registro de Residente editado Correctamente
+        {% endif %}
+      </div>
+      <div class="modal-footer">
+        <a href="{{ url_for('index_residentes') }}" class="btn btn-success" id="closeModalAndRedirect">Cerrar</a>
+
+        <script>
+          document.getElementById('closeModalAndRedirect').addEventListener('click', function() {
+            // Cerrar el modal manualmente
+            var myModal = new bootstrap.Modal(document.getElementById('resultadoModal'));
+            myModal.hide();
+
+            // Redirigir después de cerrar el modal
+            setTimeout(function() {
+              window.location.href = '{{ url_for("index_residentes") }}';
+            }, 100);
+          });
+        </script>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'footer.html' %}

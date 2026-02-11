@@ -1,0 +1,149 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  .fila-click {
+    cursor: pointer;
+  }
+  .fila-click:hover {
+    background-color: #f0f6ff;
+  }
+</style>
+
+<div class="container-fluid py-2">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="text-primary">👥 Lista de Residentes</h3>
+    <div class="d-flex gap-2">
+      <a href="/create" class="btn btn-primary">
+        <i class="bi bi-person-plus-fill"></i> Crear Nuevo
+      </a>
+
+      <a href="{{ url_for('index_admin') }}" class="btn btn-outline-secondary d-flex align-items-center">
+        <i class="fas fa-arrow-left me-2"></i> Regresar
+      </a>
+    </div>
+  </div>
+
+  <!-- Buscador -->
+  <form class="d-flex mb-4" role="search" onsubmit="return false;">
+    <input class="form-control me-4 w-25" type="search" id="buscador"
+           placeholder="Buscar por Cédula o Nombre">
+  </form>
+
+  <!-- Tabla -->
+  <div class="table-responsive rounded shadow">
+    <table class="table table-hover align-middle mb-0 bg-white w-100">
+      <thead class="bg-primary text-white">
+        <tr>
+          <th># ID</th>
+          <th>Cédula</th>
+          <th>Nombre</th>
+          <th>Nacionalidad</th>
+          <th>Tel. Emergencia</th>
+          <th>Dirección</th>
+          <th>Estado</th>
+          <th class="text-center">Detalles</th>
+        </tr>
+      </thead>
+
+      <tbody id="tabla-resultados">
+        {% for a in residentes %}
+        <tr class="fila-click"
+            data-href="{{ url_for('index_ver_info', id=a.id) }}">
+          <td>{{ a.id }}</td>
+          <td>{{ a.cedula }}</td>
+          <td>{{ a.nombre }} {{ a.apellido1 }} {{ a.apellido2 }}</td>
+          <td>{{ a.nacionalidad }}</td>
+          <td>{{ a.telefono_contacto }}</td>
+          <td>{{ a.direccion }}</td>
+          <td>
+            {% if a.activo == 1 %}
+              <span class="badge bg-success">Activo</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactivo</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            <a href="{{ url_for('index_ver_info', id=a.id) }}"
+               class="btn btn-sm btn-outline-primary"
+               title="Ver detalles">
+              <i class="bi bi-eye-fill"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- URL base para JS -->
+<script>
+  const verInfoBaseUrl = "{{ url_for('index_ver_info', id=0) }}".replace('/0', '');
+</script>
+
+<!-- JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const input = document.getElementById("buscador");
+  const tablaBody = document.getElementById("tabla-resultados");
+
+  // Click en la fila
+  document.addEventListener("click", function (e) {
+    const fila = e.target.closest(".fila-click");
+    if (!fila) return;
+
+    // Evitar conflicto con botones
+    if (e.target.closest("a, button")) return;
+
+    window.location.href = fila.dataset.href;
+  });
+
+  // Buscador
+  input.addEventListener("input", function () {
+    const query = input.value.trim();
+
+    if (!query) {
+      location.reload();
+      return;
+    }
+
+    fetch(`/buscar?q=${encodeURIComponent(query)}`)
+      .then(res => res.json())
+      .then(data => {
+        tablaBody.innerHTML = "";
+
+        data.forEach(a => {
+          tablaBody.innerHTML += `
+            <tr class="fila-click"
+                data-href="${verInfoBaseUrl}/${a.id}">
+              <td>${a.id}</td>
+              <td>${a.cedula}</td>
+              <td>${a.nombre} ${a.apellido1} ${a.apellido2}</td>
+              <td>${a.nacionalidad}</td>
+              <td>${a.telefono_contacto}</td>
+              <td>${a.direccion}</td>
+              <td>
+                ${a.activo == 1
+                  ? '<span class="badge bg-success">Activo</span>'
+                  : '<span class="badge bg-secondary">Inactivo</span>'}
+              </td>
+              <td class="text-center">
+                <a href="${verInfoBaseUrl}/${a.id}"
+                   class="btn btn-sm btn-outline-primary"
+                   title="Ver detalles">
+                  <i class="bi bi-eye-fill"></i>
+                </a>
+              </td>
+            </tr>
+          `;
+        });
+      })
+      .catch(err => console.error("Error:", err));
+  });
+});
+</script>
+
+{% include 'footer.html' %}

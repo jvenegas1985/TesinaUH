@@ -1,0 +1,243 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+<div class="container mt-4">
+  <h5 class="mb-4 text-center">Medicación del Residente </h5>
+
+  <a href="{{ url_for('index_ver_info', id=residente_id) }}"
+     class="btn btn-sm btn-outline-secondary mb-3">
+    ⬅ Regresar
+  </a>
+
+  <div class="card shadow rounded-4 mb-4">
+    <div class="card-body">
+
+      <h6 class="text-primary">Medicación Actual</h6>
+      <p class="text-muted">Tratamientos activos del residente.</p>
+
+      <div class="table-responsive">
+        <table class="table table-striped align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Medicamento</th>
+              <th>Dosis</th>
+              <th>Vía</th>
+              <th>Frecuencia</th>
+              <th>Horarios</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in medicacion %}
+            <tr>
+              <td>{{ m.medicamento }}</td>
+              <td>{{ m.dosis }}</td>
+              <td>{{ m.via_administracion }}</td>
+              <td>{{ m.frecuencia }}</td>
+              <td>{{ m.horarios }}</td>
+              <td>{{ m.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+              <td>{{ m.fecha_fin.strftime('%d/%m/%Y') if m.fecha_fin else '-' }}</td>
+              <td class="text-center">
+                <form method="POST"
+      action="/medicacion/{{ m.id }}/eliminar"
+      style="display:inline;"
+      onsubmit="return confirm('¿Eliminar este medicamento?');">
+  <button type="submit"
+          class="btn btn-sm btn-outline-danger">
+    🗑️
+  </button>
+</form>
+
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" class="text-center text-muted">
+                No hay medicación registrada
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="text-center mt-3">
+        <button class="btn btn-outline-success"
+                data-bs-toggle="modal"
+                data-bs-target="#modalAgregar">
+          ➕ Agregar Medicamento
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AGREGAR MEDICACIÓN -->
+<div class="modal fade" id="modalAgregar" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="/medicacion/nueva/{{ residente_id }}">
+
+
+        <div class="modal-header">
+          <h5 class="modal-title">Agregar Medicación</h5>
+          <button type="button" class="btn-close"
+                  data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label class="form-label">Medicamento</label>
+              <input name="medicamento" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Dosis</label>
+              <input name="dosis" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Vía de administración</label>
+              <select name="via_administracion" class="form-select">
+                <option value="oral">Oral</option>
+                <option value="intravenosa">Intravenosa</option>
+                <option value="subcutanea">Subcutánea</option>
+                <option value="topica">Tópica</option>
+                <option value="inhalada">Inhalada</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Frecuencia</label>
+              <select name="frecuencia_tipo" class="form-select" required>
+                <option value="">Seleccione...</option>
+                <option value="1xdia">1 vez al día</option>
+                <option value="2xdia">2 veces al día</option>
+                <option value="3xdia">3 veces al día</option>
+                <option value="cada_6h">Cada 6 horas</option>
+                <option value="cada_8h">Cada 8 horas</option>
+                <option value="cada_12h">Cada 12 horas</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Modo de horario</label>
+              <select name="modo_horario" id="modoHorario"
+                      class="form-select">
+                <option value="automatico">Automático (recomendado)</option>
+                <option value="manual">Manual</option>
+              </select>
+            </div>
+
+            <!-- AUTOMÁTICO -->
+            <div class="col-md-6" id="bloqueAutomatico">
+              <label class="form-label">Hora inicial</label>
+              <input type="time" name="hora_inicio"
+                     class="form-control">
+            </div>
+
+            <!-- PREVIEW -->
+            <div class="col-md-12" id="bloquePreview">
+              <label class="form-label">Horarios sugeridos</label>
+              <input type="text" id="horariosPreview"
+                     class="form-control" readonly>
+              <small class="text-muted">
+                Generados automáticamente según frecuencia y hora inicial
+              </small>
+            </div>
+
+            <!-- MANUAL -->
+            <div class="col-md-12" id="bloqueManual" style="display:none;">
+              <label class="form-label">Horarios manuales</label>
+              <input name="horarios"
+                     class="form-control"
+                     placeholder="07:30,13:00,21:00">
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Fecha inicio</label>
+              <input type="date" name="fecha_inicio"
+                     class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Fecha fin</label>
+              <input type="date" name="fecha_fin"
+                     class="form-control">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Notas</label>
+              <textarea name="notas"
+                        class="form-control"
+                        rows="2"></textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button"
+                  class="btn btn-secondary"
+                  data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="submit"
+                  class="btn btn-success">
+            Guardar Medicación
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function generarHorariosPreview() {
+  const frecuencia = document.querySelector('[name="frecuencia_tipo"]').value;
+  const horaInicio = document.querySelector('[name="hora_inicio"]').value;
+  const preview = document.getElementById('horariosPreview');
+
+  if (!frecuencia || !horaInicio) {
+    preview.value = '';
+    return;
+  }
+
+  let minutosBase = parseInt(horaInicio.split(':')[0]) * 60 +
+                    parseInt(horaInicio.split(':')[1]);
+  let horas = [];
+
+  const add = (m) => {
+    let t = (minutosBase + m) % 1440;
+    let h = String(Math.floor(t / 60)).padStart(2,'0');
+    let mm = String(t % 60).padStart(2,'0');
+    horas.push(`${h}:${mm}`);
+  };
+
+  if (frecuencia === '1xdia') add(0);
+  if (frecuencia === '2xdia') [0,720].forEach(add);
+  if (frecuencia === '3xdia') [0,480,960].forEach(add);
+  if (frecuencia === 'cada_6h') [0,360,720,1080].forEach(add);
+  if (frecuencia === 'cada_8h') [0,480,960].forEach(add);
+  if (frecuencia === 'cada_12h') [0,720].forEach(add);
+
+  preview.value = horas.join(', ');
+}
+
+document.querySelector('[name="frecuencia_tipo"]').addEventListener('change', generarHorariosPreview);
+document.querySelector('[name="hora_inicio"]').addEventListener('change', generarHorariosPreview);
+
+document.getElementById('modoHorario').addEventListener('change', function () {
+  const auto = this.value === 'automatico';
+  document.getElementById('bloqueAutomatico').style.display = auto ? 'block' : 'none';
+  document.getElementById('bloquePreview').style.display = auto ? 'block' : 'none';
+  document.getElementById('bloqueManual').style.display = auto ? 'none' : 'block';
+});
+</script>
+
+{% include 'footer.html' %}

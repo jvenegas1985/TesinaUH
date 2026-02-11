@@ -1,0 +1,123 @@
+{% include '/modulos/clientes/admin_header.html' %}
+<br>
+<h4><i class="bi bi-pencil-square center"></i> Editar Registro</h4>
+
+{% set a = arreglo[0] %}
+<form action="/modulos/clientes/create/edit/{{ a.id }}" method="POST" id="editar">
+  <input type="hidden" name="id" value="{{ a.id }}">
+  <br>
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="mb-3">
+            <label for="nombre" class="form-label"><i class="bi bi-person-fill"></i> Nombre</label>
+            <input type="text" class="form-control" name="nombre" id="nombre" value="{{a.nombre}}" required />
+          </div>
+          <div class="mb-3">
+            <label for="apellido1" class="form-label"><i class="bi bi-person-lines-fill"></i> Primer Apellido</label>
+            <input type="text" class="form-control" name="apellido1" id="apellido1" value="{{a.apellido1}}" required />
+          </div>
+          <div class="mb-3">
+            <label for="apellido2" class="form-label"><i class="bi bi-person-lines-fill"></i> Segundo Apellido</label>
+            <input type="text" class="form-control" name="apellido2" id="apellido2" value="{{a.apellido2}}" required />
+          </div>
+          <div class="mb-3">
+            <label for="cedula" class="form-label"><i class="bi bi-credit-card"></i> Cédula de Identidad</label>
+            <input type="text" class="form-control" name="cedula" id="cedula" value="{{a.cedula}}" required />
+          </div>
+          <div class="mb-3">
+            <label for="fecha_nacimiento" class="form-label"><i class="bi bi-calendar"></i> Fecha de Nacimiento</label>
+            <input type="date" class="form-control" name="fecha_nacimiento" id="fecha_nacimiento" value="{{a.fecha_nacimiento}}" required />
+          </div>
+          <div class="mb-3">
+            <label for="genero" class="form-label"><i class="bi bi-gender-ambiguous"></i> Género</label>
+            <select id="genero" name="genero" class="form-select" required>
+              <option value="" disabled {% if not a.genero %}selected{% endif %}>Seleccione</option>
+              <option value="masculino" {% if a.genero|lower == 'masculino' %}selected{% endif %}>Masculino</option>
+              <option value="femenino" {% if a.genero|lower == 'femenino' %}selected{% endif %}>Femenino</option>
+              <option value="otro" {% if a.genero|lower == 'otro' %}selected{% endif %}>Otro</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="estado_civil" class="form-label"><i class="bi bi-heart"></i> Estado Civil</label>
+            <select id="estado_civil" name="estado_civil" class="form-select" required>
+              <option value="" disabled {% if not a.estado_civil %}selected{% endif %}>Seleccione</option>
+              <option value="soltero" {% if a.estado_civil|lower == 'soltero' %}selected{% endif %}>Soltero</option>
+              <option value="casado" {% if a.estado_civil|lower == 'casado' %}selected{% endif %}>Casado</option>
+              <option value="viudo" {% if a.estado_civil|lower == 'viudo' %}selected{% endif %}>Viudo</option>
+              <option value="divorciado" {% if a.estado_civil|lower == 'divorciado' %}selected{% endif %}>Divorciado</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="mb-5">
+            <label for="pais_nacimiento" class="form-label"><i class="bi bi-globe"></i> País de Nacimiento</label>
+            <input type="text" class="form-control" name="pais_nacimiento" value="{{a.nacionalidad}}" id="pais_nacimiento" required />
+          </div>
+          <div class="mb-3">
+            <label for="direccion" class="form-label"><i class="bi bi-geo-alt"></i> Dirección</label>
+            <textarea class="form-control" id="direccion" name="direccion" rows="2" required>{{ a.direccion }}</textarea>
+          </div>
+          <div class="mb-4">
+            <label for="telefono" class="form-label"><i class="bi bi-telephone"></i> Teléfono</label>
+            <input type="tel" class="form-control" name="telefono" id="telefono" value="{{a.telefono_contacto}}" required />
+          </div>
+          <div class="mb-4">
+            <label for="nombre_contacto_emergencia" class="form-label"><i class="bi bi-person-check-fill"></i> Nombre Contacto Emergencia</label>
+            <input type="text" class="form-control" name="nombre_contacto_emergencia" value="{{a.contacto_emergencia_nombre}}" required />
+          </div>
+          <div class="mb-4">
+            <label for="telefono_emergencia" class="form-label"><i class="bi bi-telephone-inbound"></i> Teléfono Contacto Emergencia</label>
+            <input type="text" class="form-control" name="telefono_emergencia" value="{{a.contacto_emergencia_telefono}}" />
+          </div>
+          <div class="mb-4">
+            <label for="parentesco" class="form-label"><i class="bi bi-people"></i> Parentesco</label>
+            <input type="text" class="form-control" name="contacto_emergencia_parentesco" value="{{a.contacto_emergencia_parentesco}}" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="mb-5">
+            <label for="movilidad" class="form-label"><i class="bi bi-person-walking"></i> Movilidad</label>
+            <select class="form-select" name="movilidad" required>
+              <option value="" disabled {% if not a.movilidad %}selected{% endif %}>Seleccione</option>
+              <option value="Independiente" {% if a.movilidad|lower == 'independiente' %}selected{% endif %}>Independiente</option>
+              <option value="con ayuda" {% if a.movilidad|lower == 'con ayuda' %}selected{% endif %}>Con Ayuda</option>
+              <option value="Dependiente" {% if a.movilidad|lower == 'dependiente' %}selected{% endif %}>Dependiente</option>
+            </select>
+          </div>
+          <div class="mb-5">
+            <label for="estado_mental" class="form-label"><i class="bi bi-emoji-smile"></i> Estado Mental</label>
+            <select class="form-select" name="estado_mental" required>
+              <option value="" disabled {% if not a.estado_mental %}selected{% endif %}>Seleccione</option>
+              <option value="lucido" {% if a.estado_mental|lower == 'lucido' %}selected{% endif %}>Lúcido</option>
+              <option value="desorientado" {% if a.estado_mental|lower == 'desorientado' %}selected{% endif %}>Desorientado</option>
+              <option value="demencia" {% if a.estado_mental|lower == 'demencia' %}selected{% endif %}>Demencia</option>
+            </select>
+          </div>
+
+         
+          </div>
+
+          <div class="text-center">
+            <button type="submit" class="btn btn-outline-primary btn-lg px-4 rounded-pill shadow-sm" form="editar">
+              <i class="bi bi-check-circle-fill me-1"></i> Aplicar Cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+{% include 'footer.html' %}

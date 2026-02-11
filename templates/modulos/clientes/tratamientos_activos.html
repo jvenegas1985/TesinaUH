@@ -1,0 +1,70 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+<div class="container mt-4">
+
+  <h5 class="mb-4 text-center">📋 Tratamientos Activos</h5>
+
+  <div class="card shadow rounded-4">
+    <div class="card-body">
+
+      <p class="text-muted">
+        Listado global de medicamentos activos asignados a los residentes.
+      </p>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Residente</th>
+              <th>Medicamento</th>
+              <th>Dosis</th>
+              <th>Vía</th>
+              <th>Frecuencia</th>
+              <th>Horarios</th>
+              <th>Inicio</th>
+              <th>Fin</th>
+              <th>Estado</th>
+              <th>Médico</th>
+
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for m in tratamientos %}
+            <tr>
+              <td>{{ m.residente }}</td>
+              <td>{{ m.medicamento }}</td>
+              <td>{{ m.dosis }}</td>
+              <td>{{ m.via_administracion }}</td>
+              <td>{{ m.frecuencia }}</td>
+              <td>{{ m.horarios }}</td>
+              <td>{{ m.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+              <td>
+                {{ m.fecha_fin.strftime('%d/%m/%Y') if m.fecha_fin else '-' }}
+              </td>
+              <td>
+                <span class="badge bg-success">
+                  Activa
+                </span>
+              </td>
+              <td>{{ m.medico }}</td>
+
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="9" class="text-center text-muted">
+                No hay tratamientos activos registrados.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+{% include 'footer.html' %}

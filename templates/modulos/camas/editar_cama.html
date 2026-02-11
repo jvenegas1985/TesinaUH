@@ -1,0 +1,146 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-edit"></i> Editar Cama: {{ cama.numero }}</h5>
+                        <a href="{{ url_for('listar_camas') }}" class="btn btn-sm btn-light">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('editar_cama', cama_id=cama.id) }}">
+                        <div class="row g-3">
+                            <!-- Información básica -->
+                            <div class="col-md-6">
+                                <label for="numero" class="form-label">Número de Cama *</label>
+                                <input type="text" class="form-control" id="numero" name="numero" 
+                                       value="{{ cama.numero }}" required maxlength="20">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="habitacion" class="form-label">Habitación</label>
+                                <input type="text" class="form-control" id="habitacion" name="habitacion" 
+                                       value="{{ cama.habitacion or '' }}" maxlength="50">
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="piso" class="form-label">Piso</label>
+                                <input type="text" class="form-control" id="piso" name="piso" 
+                                       value="{{ cama.piso or '' }}" maxlength="20">
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="zona" class="form-label">Zona *</label>
+                                <select class="form-select" id="zona" name="zona" required>
+                                    <option value="A" {% if cama.zona == 'A' %}selected{% endif %}>Zona A - General</option>
+                                    <option value="B" {% if cama.zona == 'B' %}selected{% endif %}>Zona B</option>
+                                    <option value="C" {% if cama.zona == 'C' %}selected{% endif %}>Zona C</option>
+                                    <option value="D" {% if cama.zona == 'D' %}selected{% endif %}>Zona D</option>
+                                    <option value="UCI" {% if cama.zona == 'UCI' %}selected{% endif %}>UCI</option>
+                                    <option value="Aislamiento" {% if cama.zona == 'Aislamiento' %}selected{% endif %}>Aislamiento</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="tipo" class="form-label">Tipo de Cama *</label>
+                                <select class="form-select" id="tipo" name="tipo" required>
+                                    <option value="Individual" {% if cama.tipo == 'Individual' %}selected{% endif %}>Individual</option>
+                                    <option value="Doble" {% if cama.tipo == 'Doble' %}selected{% endif %}>Doble</option>
+                                    <option value="UCI" {% if cama.tipo == 'UCI' %}selected{% endif %}>UCI</option>
+                                    <option value="Aislamiento" {% if cama.tipo == 'Aislamiento' %}selected{% endif %}>Aislamiento</option>
+                                    <option value="Rehabilitacion" {% if cama.tipo == 'Rehabilitacion' %}selected{% endif %}>Rehabilitación</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="estado" class="form-label">Estado Actual *</label>
+                                <select class="form-select" id="estado" name="estado" required>
+                                    <option value="Disponible" {% if cama.estado == 'Disponible' %}selected{% endif %}>Disponible</option>
+                                    <option value="Ocupada" {% if cama.estado == 'Ocupada' %}selected{% endif %}>Ocupada</option>
+                                    <option value="Mantenimiento" {% if cama.estado == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
+                                    <option value="Reservada" {% if cama.estado == 'Reservada' %}selected{% endif %}>Reservada</option>
+                                    <option value="Inactiva" {% if cama.estado == 'Inactiva' %}selected{% endif %}>Inactiva</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mt-4 pt-3">
+                                    <input class="form-check-input" type="checkbox" id="activo" name="activo" 
+                                           {% if cama.activo %}checked{% endif %}>
+                                    <label class="form-check-label" for="activo">
+                                        Cama activa en el sistema
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Características -->
+                            <div class="col-12">
+                                <hr>
+                                <h6><i class="fas fa-cogs"></i> Características</h6>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="caracteristicas" class="form-label">Equipamiento y Características</label>
+                                    <textarea class="form-control" id="caracteristicas" name="caracteristicas" 
+                                              rows="3">{{ cama.caracteristicas or '' }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="observaciones" class="form-label">Observaciones</label>
+                                    <textarea class="form-control" id="observaciones" name="observaciones" 
+                                              rows="3">{{ cama.observaciones or '' }}</textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Información del sistema -->
+                            <div class="col-12">
+                                <hr>
+                                <div class="row text-muted small">
+                                    <div class="col-md-6">
+                                        <p><strong>Creada:</strong> {{ cama.created_at|datetimeformat }}</p>
+                                        {% if cama.updated_at and cama.updated_at != cama.created_at %}
+                                        <p><strong>Última modificación:</strong> {{ cama.updated_at|datetimeformat }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>ID:</strong> {{ cama.id }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botones -->
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('listar_camas') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </a>
+                                    <div>
+                                        {% if cama.estado == 'Ocupada' %}
+                                        <a href="#" class="btn btn-warning me-2">
+                                            <i class="fas fa-exchange-alt"></i> Transferir
+                                        </a>
+                                        {% endif %}
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i> Guardar Cambios
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,358 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+  .fila-click {
+    cursor: pointer;
+  }
+  .fila-click:hover {
+    background-color: #f8f9fa;
+  }
+  .descripcion-text {
+    white-space: pre-wrap;
+    font-size: 0.9em;
+    line-height: 1.4;
+  }
+  .ayuda-text {
+    font-size: 0.85em;
+    color: #6c757d;
+  }
+</style>
+
+<div class="container-fluid py-2">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="text-primary">
+      <i class="bi bi-journal-text me-2"></i> Bitácora: {{ residente.nombre_completo }}
+    </h3>
+    <div class="d-flex gap-2">
+      <a href="{{ url_for('buscar_paciente_bitacora') }}" class="btn btn-outline-secondary d-flex align-items-center">
+        <i class="fas fa-arrow-left me-2"></i> Volver
+      </a>
+    </div>
+  </div>
+
+  <!-- Filtros con ayuda -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0">
+        <i class="bi bi-funnel me-2"></i> Filtros de búsqueda
+      </h6>
+      <span class="badge bg-info">Ayuda</span>
+    </div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('filtrar_bitacora', residente_id=residente_id) }}">
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label class="form-label">Tipo de registro:</label>
+            <select name="filtro_tipo" class="form-select">
+              <option value="">Todos los tipos</option>
+              <option value="medicacion" {% if filtro_tipo == 'medicacion' %}selected{% endif %}>Medicación</option>
+              <option value="alimentacion" {% if filtro_tipo == 'alimentacion' %}selected{% endif %}>Alimentación</option>
+              <option value="aseo" {% if filtro_tipo == 'aseo' %}selected{% endif %}>Aseo</option>
+              <option value="observacion" {% if filtro_tipo == 'observacion' %}selected{% endif %}>Observación</option>
+              <option value="incidente" {% if filtro_tipo == 'incidente' %}selected{% endif %}>Incidente</option>
+              <option value="visita" {% if filtro_tipo == 'visita' %}selected{% endif %}>Visita</option>
+              <option value="actividad" {% if filtro_tipo == 'actividad' %}selected{% endif %}>Actividad</option>
+              <option value="salud" {% if filtro_tipo == 'salud' %}selected{% endif %}>Salud</option>
+            </select>
+            <div class="ayuda-text mt-1">
+              <i class="bi bi-info-circle"></i> Filtre por tipo específico de actividad
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha desde:</label>
+            <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+            <div class="ayuda-text mt-1">
+              <i class="bi bi-calendar"></i> Seleccione fecha inicial
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Fecha hasta:</label>
+            <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+            <div class="ayuda-text mt-1">
+              <i class="bi bi-calendar"></i> Seleccione fecha final
+            </div>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-filter me-2"></i> Aplicar filtros
+            </button>
+          </div>
+        </div>
+        
+      </form>
+    </div>
+  </div>
+
+  <!-- Nuevo registro con ayuda -->
+  <div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0">
+        <i class="bi bi-plus-circle me-2"></i> Nuevo registro manual
+      </h6>
+      <span class="badge bg-success">Registro manual</span>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-warning mb-3">
+        <div class="d-flex">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          <div>
+            <small><strong>Registro manual de bitácora:</strong></small>
+            <small class="d-block">Use este formulario para registrar actividades que no se capturan automáticamente en el sistema.</small>
+          </div>
+        </div>
+      </div>
+      
+      <form method="POST" action="{{ url_for('agregar_bitacora', residente_id=residente_id) }}">
+        <div class="row g-2">
+          <div class="col-md-3">
+            <label class="form-label">Tipo de actividad *</label>
+            <select name="tipo" class="form-select" required>
+              <option value="">Seleccionar tipo...</option>
+              <option value="medicacion">Medicación</option>
+              <option value="alimentacion">Alimentación</option>
+              <option value="aseo">Aseo</option>
+              <option value="observacion">Observación</option>
+              <option value="incidente">Incidente</option>
+              <option value="visita">Visita</option>
+              <option value="actividad">Actividad</option>
+              <option value="salud">Salud</option>
+            </select>
+            <div class="ayuda-text mt-1">
+              <i class="bi bi-question-circle"></i> Seleccione el tipo de actividad realizada
+            </div>
+          </div>
+          <div class="col-md-7">
+            <label class="form-label">Descripción detallada *</label>
+            <textarea name="descripcion" class="form-control" rows="2" 
+                      placeholder="" 
+                      required></textarea>
+            <div class="ayuda-text mt-1">
+              <i class="bi bi-pencil"></i> Sea específico y descriptivo. Incluya hora si es relevante.
+            </div>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-save me-2"></i> Guardar
+            </button>
+          </div>
+        </div>
+        
+        <!-- Ejemplos de descripciones -->
+        <div class="mt-3">
+          <details class="ayuda-text">
+            <summary><i class="bi bi-journal-text"></i> Ejemplos de registros correctos:</summary>
+            <div class="mt-2 ps-3 border-start border-2 border-info">
+              <ul class="mb-0 small">
+                <li><strong>Medicación:</strong> "Paracetamol 500mg administrado a las 08:00. Paciente colaboró bien."</li>
+                <li><strong>Alimentación:</strong> "Desayuno completo: café, tostadas, fruta. Consumió el 80%."</li>
+                <li><strong>Observación:</strong> "Paciente más activo hoy, participó en actividades recreativas."</li>
+                <li><strong>Incidente:</strong> "Caída leve en el pasillo a las 15:30. No presentó lesiones visibles."</li>
+                <li><strong>Visita:</strong> "Visita de hijo mayor (Juan Pérez) de 10:00 a 11:30."</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Historial de bitácora -->
+  <div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0">
+        <i class="bi bi-clock-history me-2"></i> Historial de registros
+        <span class="badge bg-secondary ms-2">{{ registros|length }}</span>
+      </h6>
+      <div class="ayuda-text">
+        <i class="bi bi-info-circle"></i> Últimos registros primero
+      </div>
+    </div>
+    
+    <div class="card-body p-0">
+      {% if registros %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Fecha/Hora</th>
+              <th>Tipo</th>
+              <th>Descripción</th>
+              <th>Personal</th>
+              <th class="text-center">Acciones</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            {% for registro in registros %}
+            <tr>
+              <td>
+                <strong>{{ registro.fecha_formateada }}</strong>
+              </td>
+              <td>
+                <span class="badge bg-secondary">
+                  {{ registro.tipo|title }}
+                </span>
+              </td>
+              <td>
+                <div class="descripcion-text">
+                  {{ registro.descripcion }}
+                </div>
+              </td>
+              <td>
+                <small>{{ registro.personal_nombre }}</small>
+              </td>
+              <td class="text-center">
+                {% if current_user.id == registro.personal_id or current_user.rol in ['administrador', 'supervisor'] %}
+                <button class="btn btn-sm btn-outline-secondary" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#modalEditar{{ registro.id }}"
+                        title="Editar registro">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-5">
+        <i class="bi bi-journal text-muted" style="font-size: 3rem;"></i>
+        <p class="mt-3 text-muted">No hay registros en la bitácora.</p>
+        <p class="text-muted small">Use el formulario arriba para agregar el primer registro.</p>
+      </div>
+      {% endif %}
+    </div>
+    
+    <div class="card-footer">
+      <div class="d-flex justify-content-between align-items-center">
+        <small class="ayuda-text">
+          <i class="bi bi-shield-check"></i>
+          Los registros solo pueden ser editados por quien los creó o por administradores.
+        </small>
+        <small class="text-muted">
+          Mostrando {{ registros|length }} registros
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modales de edición -->
+{% for registro in registros %}
+<div class="modal fade" id="modalEditar{{ registro.id }}" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" 
+            action="{{ url_for('editar_bitacora', registro_id=registro.id) }}">
+        <input type="hidden" name="residente_id" value="{{ residente_id }}">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-pencil me-2"></i> Editar registro
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="alert alert-info mb-3">
+            <small>
+              <i class="bi bi-info-circle"></i>
+              <strong>Registro original:</strong> {{ registro.fecha_formateada }} - {{ registro.tipo|title }}
+            </small>
+          </div>
+          
+          <div class="mb-3">
+            <label class="form-label">Descripción:</label>
+            <textarea name="descripcion" class="form-control" rows="4" required>{{ registro.descripcion }}</textarea>
+            <div class="ayuda-text mt-1">
+              <i class="bi bi-pencil"></i> Modifique la descripción según sea necesario
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Justificación de la modificación *</label>
+            <textarea name="justificacion" class="form-control" rows="3" 
+                      placeholder="Ej: Error de digitación, información incompleta, actualización de datos..." 
+                      required></textarea>
+            <div class="ayuda-text mt-1">
+              <i class="bi bi-exclamation-triangle"></i> Este campo es obligatorio y quedará registrado en el historial de modificaciones.
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+          <button type="submit" class="btn btn-primary">
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Auto cerrar alertas
+  setTimeout(() => {
+    document.querySelectorAll('.alert').forEach(alert => {
+      alert.classList.remove('show');
+    });
+  }, 8000);
+  
+  // Auto-focus en textarea de nuevo registro
+  const textarea = document.querySelector('textarea[name="descripcion"]');
+  if (textarea) {
+    textarea.focus();
+  }
+  
+  // Auto-completar fecha actual en filtros si están vacíos
+  const fechaInicio = document.querySelector('input[name="fecha_inicio"]');
+  const fechaFin = document.querySelector('input[name="fecha_fin"]');
+  
+  if (fechaInicio && !fechaInicio.value) {
+    const hoy = new Date().toISOString().split('T')[0];
+    fechaInicio.value = hoy;
+  }
+  
+  if (fechaFin && !fechaFin.value) {
+    const hoy = new Date().toISOString().split('T')[0];
+    fechaFin.value = hoy;
+  }
+  
+  // Mostrar ayuda para tipos de registros
+  const tipoSelect = document.querySelector('select[name="tipo"]');
+  if (tipoSelect) {
+    tipoSelect.addEventListener('change', function() {
+      const ayudaDiv = document.getElementById('ayudaTipo');
+      if (!ayudaDiv) return;
+      
+      const ejemplos = {
+        'medicacion': 'Ej: "Paracetamol 500mg a las 08:00. Paciente colaboró."',
+        'alimentacion': 'Ej: "Desayuno completo consumido al 80%. Buen apetito."',
+        'aseo': 'Ej: "Baño asistido completo. Cambio de ropa."',
+        'observacion': 'Ej: "Estado de ánimo estable. Participó en actividades."',
+        'incidente': 'Ej: "Caída leve sin lesiones. Atendido por enfermería."',
+        'visita': 'Ej: "Visita familiar de 1 hora. Buen estado emocional."',
+        'actividad': 'Ej: "Participación en terapia ocupacional por 45 min."',
+        'salud': 'Ej: "Signos vitales normales: TA 120/80, FC 72."'
+      };
+      
+      if (ejemplos[this.value]) {
+        ayudaDiv.innerHTML = `<small class="text-info"><i class="bi bi-lightbulb"></i> ${ejemplos[this.value]}</small>`;
+        ayudaDiv.style.display = 'block';
+      } else {
+        ayudaDiv.style.display = 'none';
+      }
+    });
+  }
+});
+</script>
+
+{% include 'footer.html' %}

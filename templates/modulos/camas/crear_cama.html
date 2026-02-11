@@ -1,0 +1,138 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Nueva Cama</h5>
+                        <a href="{{ url_for('listar_camas') }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('crear_cama') }}">
+                        <div class="row g-3">
+                            <!-- Información básica -->
+                            <div class="col-md-6">
+                                <label for="numero" class="form-label">Número de Cama *</label>
+                                <input type="text" class="form-control" id="numero" name="numero" 
+                                       required placeholder="Ej: B-101" maxlength="20">
+                                <div class="form-text">Identificador único de la cama</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="habitacion" class="form-label">Habitación</label>
+                                <input type="text" class="form-control" id="habitacion" name="habitacion" 
+                                       placeholder="Ej: 101" maxlength="50">
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="piso" class="form-label">Piso</label>
+                                <input type="text" class="form-control" id="piso" name="piso" 
+                                       placeholder="Ej: 1, PB, Sótano" maxlength="20">
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="zona" class="form-label">Zona *</label>
+                                <select class="form-select" id="zona" name="zona" required>
+                                    <option value="A">Zona A - General</option>
+                                    <option value="B">Zona B</option>
+                                    <option value="C">Zona C</option>
+                                    <option value="D">Zona D</option>
+                                    <option value="UCI">UCI</option>
+                                    <option value="Aislamiento">Aislamiento</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="tipo" class="form-label">Tipo de Cama *</label>
+                                <select class="form-select" id="tipo" name="tipo" required>
+                                    <option value="Individual">Individual</option>
+                                    <option value="Doble">Doble</option>
+                                    <option value="UCI">UCI</option>
+                                    <option value="Aislamiento">Aislamiento</option>
+                                    <option value="Rehabilitacion">Rehabilitación</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="estado" class="form-label">Estado Inicial *</label>
+                                <select class="form-select" id="estado" name="estado" required>
+                                    <option value="Disponible">Disponible</option>
+                                    <option value="Mantenimiento">Mantenimiento</option>
+                                    <option value="Reservada">Reservada</option>
+                                    <option value="Inactiva">Inactiva</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="form-check mt-4 pt-3">
+                                    <input class="form-check-input" type="checkbox" id="activo" name="activo" checked>
+                                    <label class="form-check-label" for="activo">
+                                        Cama activa en el sistema
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <!-- Características -->
+                            <div class="col-12">
+                                <hr>
+                                <h6><i class="fas fa-cogs"></i> Características</h6>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="caracteristicas" class="form-label">Equipamiento y Características</label>
+                                    <textarea class="form-control" id="caracteristicas" name="caracteristicas" 
+                                              rows="3" placeholder="Ej: Barandas laterales, colchón antiescaras, monitor cardíaco..."></textarea>
+                                    <div class="form-text">Liste las características especiales de la cama</div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="observaciones" class="form-label">Observaciones</label>
+                                    <textarea class="form-control" id="observaciones" name="observaciones" 
+                                              rows="3" placeholder="Notas adicionales..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Botones -->
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('listar_camas') }}" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Guardar Cama
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> Información Importante</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>El <strong>número de cama</strong> debe ser único en todo el sistema</li>
+                        <li>Las camas de <strong>UCI</strong> y <strong>Aislamiento</strong> tienen protocolos especiales</li>
+                        <li>Revise la disponibilidad antes de marcar una cama como "Reservada"</li>
+                        <li>Las camas "Inactivas" no aparecerán en las búsquedas de disponibilidad</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
