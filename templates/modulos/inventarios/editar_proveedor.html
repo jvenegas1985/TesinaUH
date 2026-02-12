@@ -1,0 +1,61 @@
+{% extends "modulos/inventarios/base_inventario.html" %}
+
+{% block title %}Editar Proveedor - Inventarios{% endblock %}
+{% block module_title %}<i class="fas fa-edit me-2"></i>Editar Proveedor{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">{{ proveedor.nombre }}</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('editar_proveedor', proveedor_id=proveedor.id) }}">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Nombre del Proveedor *</label>
+                            <input type="text" name="nombre" class="form-control" 
+                                   value="{{ proveedor.nombre }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Teléfono</label>
+                            <input type="text" name="telefono" class="form-control" 
+                                   value="{{ proveedor.telefono or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control" 
+                                   value="{{ proveedor.email or '' }}">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Dirección</label>
+                            <textarea name="direccion" class="form-control" rows="2">{{ proveedor.direccion or '' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="activo" 
+                                       id="activo" {% if proveedor.activo %}checked{% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    Proveedor activo
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('listar_proveedores') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Actualizar Proveedor
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

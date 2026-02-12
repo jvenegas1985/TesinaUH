@@ -1,0 +1,123 @@
+{% extends "modulos/inventarios/base_inventario.html" %}
+
+{% block title %}Editar Insumo - Inventarios{% endblock %}
+{% block module_title %}<i class="fas fa-edit me-2"></i>Editar Insumo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">{{ insumo.codigo }} - {{ insumo.nombre }}</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('editar_insumo', insumo_id=insumo.id) }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Código *</label>
+                            <input type="text" name="codigo" class="form-control" 
+                                   value="{{ insumo.codigo }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control" 
+                                   value="{{ insumo.nombre }}" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="2">{{ insumo.descripcion or '' }}</textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Categoría</label>
+                            <select name="categoria_id" class="form-select">
+                                <option value="">-- Seleccione categoría --</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if insumo.categoria_id == cat.id %}selected{% endif %}>
+                                    {{ cat.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Proveedor</label>
+                            <select name="proveedor_id" class="form-select">
+                                <option value="">-- Seleccione proveedor --</option>
+                                {% for prov in proveedores %}
+                                <option value="{{ prov.id }}" {% if insumo.proveedor_id == prov.id %}selected{% endif %}>
+                                    {{ prov.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Unidad de Medida</label>
+                            <input type="text" name="unidad_medida" class="form-control" 
+                                   value="{{ insumo.unidad_medida or '' }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stock Mínimo</label>
+                            <input type="number" name="stock_minimo" class="form-control" 
+                                   value="{{ insumo.stock_minimo }}" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Precio de Compra</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₡</span>
+                                <input type="number" name="precio_compra" class="form-control" 
+                                       step="0.01" min="0" value="{{ insumo.precio_compra or '' }}">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" name="activo" 
+                                       id="activo" {% if insumo.activo %}checked{% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    Insumo activo
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('listar_insumos') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Actualizar Insumo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Información de stock actual -->
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Información de Stock</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p class="mb-1"><strong>Stock Actual:</strong></p>
+                        <h4 class="text-primary">{{ insumo.stock_actual }} {{ insumo.unidad_medida or 'unid' }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1"><strong>Stock Mínimo:</strong></p>
+                        <h4 class="text-warning">{{ insumo.stock_minimo }} {{ insumo.unidad_medida or 'unid' }}</h4>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="mb-1"><strong>Estado:</strong></p>
+                        {% if insumo.stock_actual <= insumo.stock_minimo %}
+                        <span class="badge bg-danger">Stock Bajo</span>
+                        {% else %}
+                        <span class="badge bg-success">Stock Normal</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

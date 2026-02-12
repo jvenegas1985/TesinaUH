@@ -1,0 +1,74 @@
+{% extends "modulos/inventarios/base_inventario.html" %}
+
+{% block title %}Movimientos - {{ insumo.nombre }}{% endblock %}
+{% block module_title %}<i class="fas fa-history me-2"></i>Historial de Movimientos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h5 class="mb-1">{{ insumo.codigo }} - {{ insumo.nombre }}</h5>
+        <p class="text-muted mb-0">
+            <span class="badge bg-secondary me-2">{{ insumo.categoria_nombre or 'Sin categoría' }}</span>
+            Stock actual: <strong>{{ insumo.stock_actual }} {{ insumo.unidad_medida or 'unid' }}</strong>
+        </p>
+    </div>
+    <div>
+        <a href="{{ url_for('listar_insumos') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Volver
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="fas fa-list me-2"></i>Movimientos del Insumo</h6>
+    </div>
+    <div class="card-body p-0">
+        {% if movimientos %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Cantidad</th>
+                        <th>Stock Anterior</th>
+                        <th>Stock Nuevo</th>
+                        <th>Usuario</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mov in movimientos %}
+                    <tr>
+                        <td>{{ mov.fecha.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>
+                            {% if mov.tipo == 'Entrada' %}
+                            <span class="badge bg-success">Entrada</span>
+                            {% elif mov.tipo == 'Salida' %}
+                            <span class="badge bg-danger">Salida</span>
+                            {% else %}
+                            <span class="badge bg-warning">Ajuste</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold {% if mov.cantidad > 0 %}text-success{% else %}text-danger{% endif %}">
+                            {{ mov.cantidad }}
+                        </td>
+                        <td>{{ mov.stock_anterior }}</td>
+                        <td>{{ mov.stock_nuevo }}</td>
+                        <td>{{ mov.usuario_nombre or 'Sistema' }}</td>
+                        <td>{{ mov.observacion or '-' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-history fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-0">No hay movimientos registrados para este insumo</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

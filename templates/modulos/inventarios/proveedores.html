@@ -1,0 +1,97 @@
+{% extends "modulos/inventarios/base_inventario.html" %}
+
+{% block title %}Proveedores - Inventarios{% endblock %}
+{% block module_title %}<i class="fas fa-truck me-2"></i>Gestión de Proveedores{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0">Listado de Proveedores</h5>
+    <a href="{{ url_for('nuevo_proveedor') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-1"></i> Nuevo Proveedor
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if proveedores %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Teléfono</th>
+                        <th>Email</th>
+                        <th>Dirección</th>
+                        <th>Insumos</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prov in proveedores %}
+                    <tr>
+                        <td><strong>{{ prov.nombre }}</strong></td>
+                        <td>{{ prov.telefono or '-' }}</td>
+                        <td>{{ prov.email or '-' }}</td>
+                        <td>{{ prov.direccion or '-' }}</td>
+                        <td>
+                            <span class="badge bg-info">{{ prov.total_insumos or 0 }} insumos</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('editar_proveedor', proveedor_id=prov.id) }}" 
+                                   class="btn btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEliminar{{ prov.id }}"
+                                        title="Desactivar">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-truck fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-0">No hay proveedores registrados</p>
+            <p class="text-muted small">Agregue un nuevo proveedor para comenzar</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modales de eliminación -->
+{% for prov in proveedores %}
+<div class="modal fade" id="modalEliminar{{ prov.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Confirmar Desactivación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea desactivar el proveedor <strong>{{ prov.nombre }}</strong>?</p>
+                <p class="text-muted small">Los insumos asociados mantendrán el registro del proveedor.</p>
+            </div>
+            <div class="modal-footer">
+                <form action="{{ url_for('eliminar_proveedor', proveedor_id=prov.id) }}" method="post">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Desactivar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

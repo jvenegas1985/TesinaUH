@@ -1,7 +1,7 @@
 import mysql.connector
 from flask import  jsonify, make_response, Flask, render_template, request, redirect, url_for, flash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-import database as db  # suponiendo que aquí tienes la conexión db.database
+import database as db
 from datetime import datetime, time
 from werkzeug.security import check_password_hash
 from functools import wraps
@@ -1747,15 +1747,20 @@ def listar_camas():
         """)
         stats = cursor.fetchone() or {}
         
-        # Obtener camas con filtros
+        # ✅ CONSULTA CORREGIDA - INCLUYE ac.id COMO asignacion_actual_id
         query = """
-            SELECT c.*, 
-                   CONCAT(r.nombre, ' ', r.apellido1) as residente_actual,
-                   a.fecha_asignacion,
-                   DATEDIFF(CURDATE(), a.fecha_asignacion) as dias_ocupada
+            SELECT 
+                c.*, 
+                ac.id AS asignacion_actual_id,  -- ← ESTO ES LO QUE FALTABA
+                ac.fecha_asignacion,
+                DATEDIFF(CURDATE(), ac.fecha_asignacion) as dias_ocupada,
+                CASE 
+                    WHEN c.estado = 'Ocupada' THEN CONCAT(r.nombre, ' ', r.apellido1)
+                    ELSE NULL 
+                END AS residente_actual
             FROM camas c
-            LEFT JOIN asignacion_camas a ON c.id = a.cama_id AND a.estado = 'Activa'
-            LEFT JOIN residentes r ON a.residente_id = r.id
+            LEFT JOIN asignacion_camas ac ON c.id = ac.cama_id AND ac.estado = 'Activa'
+            LEFT JOIN residentes r ON ac.residente_id = r.id
             WHERE c.activo = TRUE
         """
         
@@ -1802,7 +1807,6 @@ def listar_camas():
                          filtro_estado=filtro_estado,
                          filtro_zona=filtro_zona,
                          filtro_tipo=filtro_tipo)
-
 
 @app.route('/camas/nueva', methods=['GET', 'POST'])
 @login_required
@@ -2127,7 +2131,7 @@ Asignado por: {current_user.nombre}
             db.database.commit()
             
             flash(f"Cama {cama['numero']} asignada exitosamente a {residente['nombre']}", "success")
-            return redirect(url_for('ver_info', id=residente_id))
+            return redirect(url_for('index_ver_info', id=residente_id))  # ← CORREGIDO: 'index_ver_info'
         
         # GET: Mostrar camas disponibles
         # Filtros
@@ -2190,63 +2194,40 @@ def liberar_cama(asignacion_id):
     try:
         # Obtener información de la asignación
         cursor.execute("""
-            SELECT ac.*, c.numero, c.habitacion, r.nombre, r.apellido1
+            SELECT ac.*, c.id as cama_id, c.numero
             FROM asignacion_camas ac
             JOIN camas c ON ac.cama_id = c.id
-            JOIN residentes r ON ac.residente_id = r.id
             WHERE ac.id = %s AND ac.estado = 'Activa'
         """, (asignacion_id,))
         
         asignacion = cursor.fetchone()
         
         if not asignacion:
-            return jsonify({'success': False, 'error': 'Asignación no encontrada o ya liberada'}), 404
+            return jsonify({'success': False, 'error': 'Asignación no encontrada'}), 404
         
-        motivo_liberacion = request.form.get('motivo_liberacion', 'Alta')
-        observaciones = request.form.get('observaciones', '').strip()
+        motivo = request.form.get('motivo_liberacion', 'Ingreso')
         
-        # Actualizar asignación
+        # SOLO ACTUALIZAR LO NECESARIO - SIN COLUMNA TIPO
         cursor.execute("""
             UPDATE asignacion_camas 
             SET estado = 'Finalizada', 
-                fecha_liberacion = CURDATE(),
-                observaciones = CONCAT(COALESCE(observaciones, ''), ' | Liberación: ', %s)
+                fecha_liberacion = CURDATE()
             WHERE id = %s
-        """, (observaciones, asignacion_id))
+        """, (asignacion_id,))
         
-        # Actualizar estado de la cama (a Disponible o Mantenimiento según necesidad)
-        nuevo_estado_cama = 'Disponible'
-        
-        # Si se requiere limpieza/mantenimiento
-        if motivo_liberacion in ['Limpieza profunda', 'Mantenimiento requerido']:
-            nuevo_estado_cama = 'Mantenimiento'
-        
-        cursor.execute("UPDATE camas SET estado = %s, updated_at = NOW() WHERE id = %s", 
-                      (nuevo_estado_cama, asignacion['cama_id']))
-        
-        # Bitácora
-        descripcion_bitacora = f"""
-LIBERACIÓN DE CAMA:
-Residente: {asignacion['nombre']} {asignacion['apellido1']}
-Cama liberada: {asignacion['numero']}
-Motivo: {motivo_liberacion}
-Días ocupada: {datetime.now().date() - asignacion['fecha_asignacion']}
-Observaciones: {observaciones}
-Liberado por: {current_user.nombre}
-        """.strip()
-        
+        # Actualizar estado de la cama
         cursor.execute("""
-            INSERT INTO bitacora_pacientes 
-            (residente_id, tipo, descripcion, personal_id, fecha_hora)
-            VALUES (%s, 'alta', %s, %s, NOW())
-        """, (asignacion['residente_id'], descripcion_bitacora, current_user.id))
+            UPDATE camas 
+            SET estado = 'Disponible', 
+                updated_at = NOW() 
+            WHERE id = %s
+        """, (asignacion['cama_id'],))
         
         db.database.commit()
         
         return jsonify({
             'success': True,
-            'message': f'Cama {asignacion["numero"]} liberada exitosamente',
-            'estado_cama': nuevo_estado_cama
+            'message': f'Cama {asignacion["numero"]} liberada'
         })
         
     except Exception as e:
@@ -2503,6 +2484,802 @@ def dateformat(value, format='%d/%m/%Y'):
         except:
             return value
     return value.strftime(format)
+
+
+
+
+
+
+
+
+
+# ============================================
+# MÓDULO DE INVENTARIOS - VERSIÓN TESINA
+# ============================================
+
+# ------------------------------------------------------------
+# LISTAR INSUMOS
+# ------------------------------------------------------------
+@app.route('/inventario/insumos')
+@login_required
+@role_required('bodega', 'farmacia', 'administrador')
+def listar_insumos():
+    """Lista todos los insumos del inventario"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Filtros básicos
+        categoria_id = request.args.get('categoria', '')
+        busqueda = request.args.get('q', '')
+        
+        query = """
+            SELECT i.*, c.nombre as categoria_nombre, p.nombre as proveedor_nombre
+            FROM insumos i
+            LEFT JOIN categorias_insumos c ON i.categoria_id = c.id
+            LEFT JOIN proveedores p ON i.proveedor_id = p.id
+            WHERE i.activo = TRUE
+        """
+        params = []
+        
+        if categoria_id:
+            query += " AND i.categoria_id = %s"
+            params.append(categoria_id)
+        
+        if busqueda:
+            query += " AND (i.nombre LIKE %s OR i.codigo LIKE %s)"
+            params.extend([f"%{busqueda}%", f"%{busqueda}%"])
+        
+        query += " ORDER BY i.nombre"
+        
+        cursor.execute(query, params)
+        insumos = cursor.fetchall()
+        
+        # Categorías para filtro
+        cursor.execute("SELECT * FROM categorias_insumos WHERE activo = TRUE ORDER BY nombre")
+        categorias = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error listando insumos: {e}")
+        insumos = []
+        categorias = []
+        flash(f"Error al cargar insumos: {str(e)}", "danger")
+    
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/insumos.html',
+                         insumos=insumos,
+                         categorias=categorias,
+                         filtro_categoria=categoria_id,
+                         busqueda=busqueda)
+
+
+# ------------------------------------------------------------
+# NUEVO INSUMO
+# ------------------------------------------------------------
+@app.route('/inventario/insumos/nuevo', methods=['GET', 'POST'])
+@login_required
+@role_required('bodega', 'farmacia', 'administrador')
+def nuevo_insumo():
+    """Crea un nuevo insumo"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        codigo = request.form.get('codigo', '').strip().upper()
+        nombre = request.form.get('nombre', '').strip().upper()
+        descripcion = request.form.get('descripcion', '').strip()
+        categoria_id = request.form.get('categoria_id')
+        proveedor_id = request.form.get('proveedor_id')
+        unidad_medida = request.form.get('unidad_medida', '').strip()
+        stock_actual = request.form.get('stock_actual', 0)
+        stock_minimo = request.form.get('stock_minimo', 5)
+        precio_compra = request.form.get('precio_compra') or None
+        
+        if not codigo or not nombre:
+            flash("Código y nombre son obligatorios", "danger")
+            return redirect(url_for('nuevo_insumo'))
+        
+        try:
+            # Verificar si el código ya existe
+            cursor.execute("SELECT id FROM insumos WHERE codigo = %s", (codigo,))
+            if cursor.fetchone():
+                flash(f"Ya existe un insumo con código {codigo}", "warning")
+                return redirect(url_for('nuevo_insumo'))
+            
+            # Insertar insumo
+            cursor.execute("""
+                INSERT INTO insumos 
+                (codigo, nombre, descripcion, categoria_id, proveedor_id, 
+                 unidad_medida, stock_actual, stock_minimo, precio_compra)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (codigo, nombre, descripcion, categoria_id, proveedor_id,
+                 unidad_medida, stock_actual, stock_minimo, precio_compra))
+            
+            insumo_id = cursor.lastrowid
+            
+            # Registrar movimiento inicial si hay stock
+            if int(stock_actual) > 0:
+                cursor.execute("""
+                    INSERT INTO movimientos_inventario 
+                    (insumo_id, tipo, cantidad, stock_anterior, stock_nuevo, usuario_id, observacion)
+                    VALUES (%s, 'Entrada', %s, 0, %s, %s, 'Stock inicial')
+                """, (insumo_id, stock_actual, stock_actual, current_user.id))
+            
+            db.database.commit()
+            flash(f"Insumo {codigo} creado exitosamente", "success")
+            return redirect(url_for('listar_insumos'))
+            
+        except Exception as e:
+            db.database.rollback()
+            flash(f"Error al crear insumo: {str(e)}", "danger")
+    
+    # GET: cargar datos para formulario
+    try:
+        cursor.execute("SELECT * FROM categorias_insumos WHERE activo = TRUE ORDER BY nombre")
+        categorias = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM proveedores WHERE activo = TRUE ORDER BY nombre")
+        proveedores = cursor.fetchall()
+    except Exception as e:
+        categorias = []
+        proveedores = []
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/nuevo_insumo.html',
+                         categorias=categorias,
+                         proveedores=proveedores)
+
+
+# ------------------------------------------------------------
+# EDITAR INSUMO
+# ------------------------------------------------------------
+@app.route('/inventario/insumos/<int:insumo_id>/editar', methods=['GET', 'POST'])
+@login_required
+@role_required('bodega', 'farmacia', 'administrador')
+def editar_insumo(insumo_id):
+    """Edita un insumo existente"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        try:
+            codigo = request.form.get('codigo', '').strip().upper()
+            nombre = request.form.get('nombre', '').strip().upper()
+            descripcion = request.form.get('descripcion', '').strip()
+            categoria_id = request.form.get('categoria_id')
+            proveedor_id = request.form.get('proveedor_id')
+            unidad_medida = request.form.get('unidad_medida', '').strip()
+            stock_minimo = request.form.get('stock_minimo', 5)
+            precio_compra = request.form.get('precio_compra') or None
+            activo = 1 if request.form.get('activo') else 0
+            
+            # Verificar código duplicado
+            cursor.execute("SELECT id FROM insumos WHERE codigo = %s AND id != %s", (codigo, insumo_id))
+            if cursor.fetchone():
+                flash(f"Ya existe otro insumo con código {codigo}", "warning")
+                return redirect(url_for('editar_insumo', insumo_id=insumo_id))
+            
+            # Actualizar insumo
+            cursor.execute("""
+                UPDATE insumos SET
+                    codigo = %s,
+                    nombre = %s,
+                    descripcion = %s,
+                    categoria_id = %s,
+                    proveedor_id = %s,
+                    unidad_medida = %s,
+                    stock_minimo = %s,
+                    precio_compra = %s,
+                    activo = %s,
+                    created_at = created_at
+                WHERE id = %s
+            """, (codigo, nombre, descripcion, categoria_id, proveedor_id,
+                 unidad_medida, stock_minimo, precio_compra, activo, insumo_id))
+            
+            db.database.commit()
+            flash(f"Insumo {codigo} actualizado exitosamente", "success")
+            return redirect(url_for('listar_insumos'))
+            
+        except Exception as e:
+            db.database.rollback()
+            flash(f"Error al actualizar insumo: {str(e)}", "danger")
+    
+    # GET: cargar datos del insumo
+    try:
+        cursor.execute("SELECT * FROM insumos WHERE id = %s", (insumo_id,))
+        insumo = cursor.fetchone()
+        
+        if not insumo:
+            flash("Insumo no encontrado", "danger")
+            return redirect(url_for('listar_insumos'))
+        
+        cursor.execute("SELECT * FROM categorias_insumos WHERE activo = TRUE ORDER BY nombre")
+        categorias = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM proveedores WHERE activo = TRUE ORDER BY nombre")
+        proveedores = cursor.fetchall()
+        
+    except Exception as e:
+        flash(f"Error al cargar datos: {str(e)}", "danger")
+        return redirect(url_for('listar_insumos'))
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/editar_insumo.html',
+                         insumo=insumo,
+                         categorias=categorias,
+                         proveedores=proveedores)
+
+
+# ------------------------------------------------------------
+# AJUSTAR STOCK
+# ------------------------------------------------------------
+@app.route('/inventario/insumos/<int:insumo_id>/ajustar-stock', methods=['POST'])
+@login_required
+@role_required('bodega', 'farmacia', 'administrador')
+def ajustar_stock(insumo_id):
+    """Realiza un ajuste de stock manual"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        cantidad = int(request.form.get('cantidad', 0))
+        tipo = request.form.get('tipo', 'Ajuste')
+        observacion = request.form.get('observacion', '').strip()
+        
+        if cantidad == 0:
+            flash("La cantidad debe ser diferente de cero", "danger")
+            return redirect(url_for('listar_insumos'))
+        
+        # Obtener stock actual
+        cursor.execute("SELECT stock_actual, nombre FROM insumos WHERE id = %s", (insumo_id,))
+        insumo = cursor.fetchone()
+        
+        if not insumo:
+            flash("Insumo no encontrado", "danger")
+            return redirect(url_for('listar_insumos'))
+        
+        stock_anterior = insumo['stock_actual']
+        stock_nuevo = stock_anterior + cantidad
+        
+        if stock_nuevo < 0:
+            flash("El stock no puede ser negativo", "danger")
+            return redirect(url_for('listar_insumos'))
+        
+        # Actualizar stock
+        cursor.execute("UPDATE insumos SET stock_actual = %s WHERE id = %s", (stock_nuevo, insumo_id))
+        
+        # Registrar movimiento
+        cursor.execute("""
+            INSERT INTO movimientos_inventario 
+            (insumo_id, tipo, cantidad, stock_anterior, stock_nuevo, usuario_id, observacion)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (insumo_id, tipo, cantidad, stock_anterior, stock_nuevo, current_user.id, observacion))
+        
+        db.database.commit()
+        flash(f"Stock ajustado correctamente. Nuevo stock: {stock_nuevo}", "success")
+        
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al ajustar stock: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('listar_insumos'))
+
+
+# ------------------------------------------------------------
+# ELIMINAR INSUMO (DESACTIVAR)
+# ------------------------------------------------------------
+@app.route('/inventario/insumos/<int:insumo_id>/eliminar', methods=['POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def eliminar_insumo(insumo_id):
+    """Desactiva un insumo (no lo elimina físicamente)"""
+    cursor = db.database.cursor()
+    
+    try:
+        cursor.execute("UPDATE insumos SET activo = FALSE WHERE id = %s", (insumo_id,))
+        db.database.commit()
+        flash("Insumo desactivado correctamente", "success")
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al desactivar insumo: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('listar_insumos'))
+
+
+# ------------------------------------------------------------
+# LISTAR PROVEEDORES
+# ------------------------------------------------------------
+@app.route('/inventario/proveedores')
+@login_required
+@role_required('bodega', 'administrador')
+def listar_proveedores():
+    """Lista todos los proveedores"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("""
+            SELECT p.*, COUNT(i.id) as total_insumos
+            FROM proveedores p
+            LEFT JOIN insumos i ON p.id = i.proveedor_id AND i.activo = TRUE
+            WHERE p.activo = TRUE
+            GROUP BY p.id
+            ORDER BY p.nombre
+        """)
+        proveedores = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error listando proveedores: {e}")
+        proveedores = []
+        flash(f"Error al cargar proveedores: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/proveedores.html',
+                         proveedores=proveedores)
+
+
+# ------------------------------------------------------------
+# NUEVO PROVEEDOR
+# ------------------------------------------------------------
+@app.route('/inventario/proveedores/nuevo', methods=['GET', 'POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def nuevo_proveedor():
+    """Crea un nuevo proveedor"""
+    if request.method == 'POST':
+        nombre = request.form.get('nombre', '').strip().upper()
+        telefono = request.form.get('telefono', '').strip()
+        email = request.form.get('email', '').strip()
+        direccion = request.form.get('direccion', '').strip().upper()
+        
+        if not nombre:
+            flash("El nombre del proveedor es obligatorio", "danger")
+            return redirect(url_for('nuevo_proveedor'))
+        
+        cursor = db.database.cursor()
+        
+        try:
+            cursor.execute("""
+                INSERT INTO proveedores (nombre, telefono, email, direccion)
+                VALUES (%s, %s, %s, %s)
+            """, (nombre, telefono, email, direccion))
+            
+            db.database.commit()
+            flash(f"Proveedor {nombre} creado exitosamente", "success")
+            return redirect(url_for('listar_proveedores'))
+            
+        except Exception as e:
+            db.database.rollback()
+            flash(f"Error al crear proveedor: {str(e)}", "danger")
+        finally:
+            cursor.close()
+    
+    return render_template('modulos/inventarios/nuevo_proveedor.html')
+
+
+# ------------------------------------------------------------
+# EDITAR PROVEEDOR
+# ------------------------------------------------------------
+@app.route('/inventario/proveedores/<int:proveedor_id>/editar', methods=['GET', 'POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def editar_proveedor(proveedor_id):
+    """Edita un proveedor existente"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        try:
+            nombre = request.form.get('nombre', '').strip().upper()
+            telefono = request.form.get('telefono', '').strip()
+            email = request.form.get('email', '').strip()
+            direccion = request.form.get('direccion', '').strip().upper()
+            activo = 1 if request.form.get('activo') else 0
+            
+            cursor.execute("""
+                UPDATE proveedores SET
+                    nombre = %s,
+                    telefono = %s,
+                    email = %s,
+                    direccion = %s,
+                    activo = %s
+                WHERE id = %s
+            """, (nombre, telefono, email, direccion, activo, proveedor_id))
+            
+            db.database.commit()
+            flash(f"Proveedor {nombre} actualizado exitosamente", "success")
+            return redirect(url_for('listar_proveedores'))
+            
+        except Exception as e:
+            db.database.rollback()
+            flash(f"Error al actualizar proveedor: {str(e)}", "danger")
+    
+    # GET: cargar datos del proveedor
+    try:
+        cursor.execute("SELECT * FROM proveedores WHERE id = %s", (proveedor_id,))
+        proveedor = cursor.fetchone()
+        
+        if not proveedor:
+            flash("Proveedor no encontrado", "danger")
+            return redirect(url_for('listar_proveedores'))
+            
+    except Exception as e:
+        flash(f"Error al cargar datos: {str(e)}", "danger")
+        return redirect(url_for('listar_proveedores'))
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/editar_proveedor.html',
+                         proveedor=proveedor)
+
+
+# ------------------------------------------------------------
+# ELIMINAR PROVEEDOR (DESACTIVAR)
+# ------------------------------------------------------------
+@app.route('/inventario/proveedores/<int:proveedor_id>/eliminar', methods=['POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def eliminar_proveedor(proveedor_id):
+    """Desactiva un proveedor"""
+    cursor = db.database.cursor()
+    
+    try:
+        cursor.execute("UPDATE proveedores SET activo = FALSE WHERE id = %s", (proveedor_id,))
+        db.database.commit()
+        flash("Proveedor desactivado correctamente", "success")
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al desactivar proveedor: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('listar_proveedores'))
+
+
+# ------------------------------------------------------------
+# LISTAR ÓRDENES DE COMPRA
+# ------------------------------------------------------------
+@app.route('/inventario/ordenes-compra')
+@login_required
+@role_required('bodega', 'administrador')
+def listar_ordenes_compra():
+    """Lista todas las órdenes de compra"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("""
+            SELECT o.*, p.nombre as proveedor_nombre, u.nombre as creador_nombre
+            FROM ordenes_compra o
+            JOIN proveedores p ON o.proveedor_id = p.id
+            LEFT JOIN usuarios u ON o.creado_por = u.id
+            ORDER BY o.fecha DESC, o.id DESC
+        """)
+        ordenes = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error listando órdenes: {e}")
+        ordenes = []
+        flash(f"Error al cargar órdenes de compra: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/ordenes_compra.html',
+                         ordenes=ordenes)
+
+
+# ------------------------------------------------------------
+# NUEVA ORDEN DE COMPRA
+# ------------------------------------------------------------
+@app.route('/inventario/ordenes-compra/nueva', methods=['GET', 'POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def nueva_orden_compra():
+    """Crea una nueva orden de compra"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        proveedor_id = request.form.get('proveedor_id')
+        fecha = request.form.get('fecha', datetime.now().strftime('%Y-%m-%d'))
+        
+        if not proveedor_id:
+            flash("Debe seleccionar un proveedor", "danger")
+            return redirect(url_for('nueva_orden_compra'))
+        
+        # Generar número de orden automático
+        numero_orden = f"OC-{datetime.now().year}-{datetime.now().strftime('%m%d%H%M%S')}"
+        
+        try:
+            cursor.execute("""
+                INSERT INTO ordenes_compra 
+                (numero_orden, proveedor_id, fecha, creado_por)
+                VALUES (%s, %s, %s, %s)
+            """, (numero_orden, proveedor_id, fecha, current_user.id))
+            
+            orden_id = cursor.lastrowid
+            db.database.commit()
+            
+            flash(f"Orden de compra {numero_orden} creada", "success")
+            return redirect(url_for('editar_orden_compra', orden_id=orden_id))
+            
+        except Exception as e:
+            db.database.rollback()
+            flash(f"Error al crear orden: {str(e)}", "danger")
+    
+    # GET: cargar proveedores
+    try:
+        cursor.execute("SELECT * FROM proveedores WHERE activo = TRUE ORDER BY nombre")
+        proveedores = cursor.fetchall()
+        
+        cursor.execute("SELECT * FROM insumos WHERE activo = TRUE ORDER BY nombre")
+        insumos = cursor.fetchall()
+    except Exception as e:
+        proveedores = []
+        insumos = []
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/nueva_orden_compra.html',
+                         proveedores=proveedores,
+                         insumos=insumos,
+                         hoy=datetime.now().strftime('%Y-%m-%d'))
+
+
+# ------------------------------------------------------------
+# VER/EDITAR ORDEN DE COMPRA
+# ------------------------------------------------------------
+@app.route('/inventario/ordenes-compra/<int:orden_id>')
+@login_required
+@role_required('bodega', 'administrador')
+def editar_orden_compra(orden_id):
+    """Ver/editar una orden de compra"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Obtener orden
+        cursor.execute("""
+            SELECT o.*, p.nombre as proveedor_nombre, u.nombre as creador_nombre
+            FROM ordenes_compra o
+            JOIN proveedores p ON o.proveedor_id = p.id
+            LEFT JOIN usuarios u ON o.creado_por = u.id
+            WHERE o.id = %s
+        """, (orden_id,))
+        orden = cursor.fetchone()
+        
+        if not orden:
+            flash("Orden de compra no encontrada", "danger")
+            return redirect(url_for('listar_ordenes_compra'))
+        
+        # Obtener detalles
+        cursor.execute("""
+            SELECT od.*, i.nombre, i.codigo, i.unidad_medida
+            FROM orden_compra_detalles od
+            JOIN insumos i ON od.insumo_id = i.id
+            WHERE od.orden_id = %s
+        """, (orden_id,))
+        detalles = cursor.fetchall()
+        
+        # Calcular total
+        total = sum(d['cantidad'] * d['precio_unitario'] for d in detalles) if detalles else 0
+        
+        # Actualizar total en orden
+        cursor.execute("UPDATE ordenes_compra SET total = %s WHERE id = %s", (total, orden_id))
+        db.database.commit()
+        
+        # Insumos para agregar más
+        cursor.execute("SELECT * FROM insumos WHERE activo = TRUE ORDER BY nombre")
+        insumos = cursor.fetchall()
+        
+    except Exception as e:
+        flash(f"Error al cargar orden: {str(e)}", "danger")
+        return redirect(url_for('listar_ordenes_compra'))
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/editar_orden_compra.html',
+                         orden=orden,
+                         detalles=detalles,
+                         total=total,
+                         insumos=insumos)
+
+
+# ------------------------------------------------------------
+# AGREGAR DETALLE A ORDEN
+# ------------------------------------------------------------
+@app.route('/inventario/ordenes-compra/<int:orden_id>/agregar-detalle', methods=['POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def agregar_detalle_orden(orden_id):
+    """Agrega un insumo a la orden de compra"""
+    insumo_id = request.form.get('insumo_id')
+    cantidad = request.form.get('cantidad')
+    precio_unitario = request.form.get('precio_unitario')
+    
+    if not all([insumo_id, cantidad, precio_unitario]):
+        flash("Todos los campos son obligatorios", "danger")
+        return redirect(url_for('editar_orden_compra', orden_id=orden_id))
+    
+    cursor = db.database.cursor()
+    
+    try:
+        cursor.execute("""
+            INSERT INTO orden_compra_detalles 
+            (orden_id, insumo_id, cantidad, precio_unitario)
+            VALUES (%s, %s, %s, %s)
+        """, (orden_id, insumo_id, cantidad, precio_unitario))
+        
+        db.database.commit()
+        flash("Insumo agregado a la orden", "success")
+        
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al agregar insumo: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('editar_orden_compra', orden_id=orden_id))
+
+
+# ------------------------------------------------------------
+# ELIMINAR DETALLE DE ORDEN
+# ------------------------------------------------------------
+@app.route('/inventario/ordenes-compra/eliminar-detalle/<int:detalle_id>', methods=['POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def eliminar_detalle_orden(detalle_id):
+    """Elimina un detalle de la orden de compra"""
+    cursor = db.database.cursor()
+    
+    try:
+        cursor.execute("SELECT orden_id FROM orden_compra_detalles WHERE id = %s", (detalle_id,))
+        detalle = cursor.fetchone()
+        
+        if not detalle:
+            flash("Detalle no encontrado", "danger")
+            return redirect(url_for('listar_ordenes_compra'))
+        
+        orden_id = detalle[0]
+        
+        cursor.execute("DELETE FROM orden_compra_detalles WHERE id = %s", (detalle_id,))
+        db.database.commit()
+        
+        flash("Insumo eliminado de la orden", "success")
+        return redirect(url_for('editar_orden_compra', orden_id=orden_id))
+        
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al eliminar detalle: {str(e)}", "danger")
+        return redirect(url_for('listar_ordenes_compra'))
+    finally:
+        cursor.close()
+
+
+# ------------------------------------------------------------
+# CAMBIAR ESTADO DE LA ORDEN
+# ------------------------------------------------------------
+@app.route('/inventario/ordenes-compra/<int:orden_id>/cambiar-estado', methods=['POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def cambiar_estado_orden(orden_id):
+    """Cambia el estado de una orden de compra"""
+    nuevo_estado = request.form.get('estado')
+    
+    if not nuevo_estado:
+        flash("Estado no proporcionado", "danger")
+        return redirect(url_for('listar_ordenes_compra'))
+    
+    cursor = db.database.cursor()
+    
+    try:
+        cursor.execute("UPDATE ordenes_compra SET estado = %s WHERE id = %s", (nuevo_estado, orden_id))
+        db.database.commit()
+        flash(f"Estado de orden actualizado a {nuevo_estado}", "success")
+        
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al cambiar estado: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('listar_ordenes_compra'))
+
+
+# ------------------------------------------------------------
+# RECIBIR ORDEN Y ACTUALIZAR INVENTARIO
+# ------------------------------------------------------------
+@app.route('/inventario/ordenes-compra/<int:orden_id>/recibir', methods=['POST'])
+@login_required
+@role_required('bodega', 'administrador')
+def recibir_orden_compra(orden_id):
+    """Marca orden como recibida y actualiza stock"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Obtener detalles
+        cursor.execute("""
+            SELECT od.*, i.stock_actual
+            FROM orden_compra_detalles od
+            JOIN insumos i ON od.insumo_id = i.id
+            WHERE od.orden_id = %s
+        """, (orden_id,))
+        detalles = cursor.fetchall()
+        
+        for detalle in detalles:
+            # Actualizar stock
+            nuevo_stock = detalle['stock_actual'] + detalle['cantidad']
+            cursor.execute("UPDATE insumos SET stock_actual = %s WHERE id = %s", 
+                         (nuevo_stock, detalle['insumo_id']))
+            
+            # Registrar movimiento
+            cursor.execute("""
+                INSERT INTO movimientos_inventario 
+                (insumo_id, tipo, cantidad, stock_anterior, stock_nuevo, usuario_id, observacion)
+                VALUES (%s, 'Entrada', %s, %s, %s, %s, %s)
+            """, (detalle['insumo_id'], detalle['cantidad'], 
+                 detalle['stock_actual'], nuevo_stock, current_user.id,
+                 f"Orden de compra #{orden_id}"))
+        
+        # Cambiar estado de orden
+        cursor.execute("UPDATE ordenes_compra SET estado = 'Recibida' WHERE id = %s", (orden_id,))
+        db.database.commit()
+        
+        flash("Orden recibida y stock actualizado correctamente", "success")
+        
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al recibir orden: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('listar_ordenes_compra'))
+
+
+# ------------------------------------------------------------
+# VER MOVIMIENTOS DE UN INSUMO
+# ------------------------------------------------------------
+@app.route('/inventario/insumos/<int:insumo_id>/movimientos')
+@login_required
+@role_required('bodega', 'farmacia', 'administrador')
+def ver_movimientos(insumo_id):
+    """Ver historial de movimientos de un insumo"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Datos del insumo
+        cursor.execute("""
+            SELECT i.*, c.nombre as categoria_nombre, p.nombre as proveedor_nombre
+            FROM insumos i
+            LEFT JOIN categorias_insumos c ON i.categoria_id = c.id
+            LEFT JOIN proveedores p ON i.proveedor_id = p.id
+            WHERE i.id = %s
+        """, (insumo_id,))
+        insumo = cursor.fetchone()
+        
+        if not insumo:
+            flash("Insumo no encontrado", "danger")
+            return redirect(url_for('listar_insumos'))
+        
+        # Movimientos
+        cursor.execute("""
+            SELECT m.*, u.nombre as usuario_nombre
+            FROM movimientos_inventario m
+            LEFT JOIN usuarios u ON m.usuario_id = u.id
+            WHERE m.insumo_id = %s
+            ORDER BY m.fecha DESC
+        """, (insumo_id,))
+        movimientos = cursor.fetchall()
+        
+    except Exception as e:
+        flash(f"Error al cargar movimientos: {str(e)}", "danger")
+        return redirect(url_for('listar_insumos'))
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/inventarios/movimientos.html',
+                         insumo=insumo,
+                         movimientos=movimientos)
 
 
 if __name__ == '__main__':

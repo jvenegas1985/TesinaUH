@@ -48,7 +48,6 @@ CREATE TABLE `administraciones_medicacion` (
 
 LOCK TABLES `administraciones_medicacion` WRITE;
 /*!40000 ALTER TABLE `administraciones_medicacion` DISABLE KEYS */;
-INSERT INTO `administraciones_medicacion` VALUES (15,27,'2026-02-10','10:23:00','09:29:51',5,'administrada','acepto medicamento','2026-02-10 15:29:30'),(16,28,'2026-02-10','10:43:00','09:58:46',5,'administrada','','2026-02-10 15:56:28');
 /*!40000 ALTER TABLE `administraciones_medicacion` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -79,7 +78,7 @@ CREATE TABLE `asignacion_camas` (
   CONSTRAINT `asignacion_camas_ibfk_1` FOREIGN KEY (`cama_id`) REFERENCES `camas` (`id`) ON DELETE CASCADE,
   CONSTRAINT `asignacion_camas_ibfk_2` FOREIGN KEY (`residente_id`) REFERENCES `residentes` (`id`) ON DELETE CASCADE,
   CONSTRAINT `asignacion_camas_ibfk_3` FOREIGN KEY (`asignado_por`) REFERENCES `usuarios` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -88,7 +87,7 @@ CREATE TABLE `asignacion_camas` (
 
 LOCK TABLES `asignacion_camas` WRITE;
 /*!40000 ALTER TABLE `asignacion_camas` DISABLE KEYS */;
-INSERT INTO `asignacion_camas` VALUES (1,1,93,'2026-02-10',NULL,'Ingreso','',5,'Activa','2026-02-10 22:19:34');
+INSERT INTO `asignacion_camas` VALUES (4,1,3,'2026-02-11','2026-02-12','Ingreso','',5,'Finalizada','2026-02-11 16:55:22'),(5,2,4,'2026-02-11','2026-02-12','Ingreso','',5,'Finalizada','2026-02-11 16:55:48'),(6,3,9,'2026-02-11',NULL,'Ingreso','',5,'Activa','2026-02-11 16:56:09'),(7,4,7,'2026-02-11',NULL,'Ingreso','',5,'Activa','2026-02-11 16:56:15'),(8,5,2,'2026-02-11',NULL,'Ingreso','',5,'Activa','2026-02-11 16:56:23'),(9,6,8,'2026-02-11',NULL,'Ingreso','',5,'Activa','2026-02-12 00:06:43'),(10,7,1,'2026-02-11',NULL,'Ingreso','',5,'Activa','2026-02-12 00:06:57'),(11,8,5,'2026-02-11',NULL,'Ingreso','',5,'Activa','2026-02-12 00:07:07'),(12,9,6,'2026-02-11',NULL,'Ingreso','',5,'Activa','2026-02-12 00:07:25');
 /*!40000 ALTER TABLE `asignacion_camas` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -117,7 +116,7 @@ CREATE TABLE `bitacora_pacientes` (
   CONSTRAINT `bitacora_pacientes_ibfk_1` FOREIGN KEY (`residente_id`) REFERENCES `residentes` (`id`),
   CONSTRAINT `bitacora_pacientes_ibfk_2` FOREIGN KEY (`personal_id`) REFERENCES `usuarios` (`id`),
   CONSTRAINT `bitacora_pacientes_ibfk_3` FOREIGN KEY (`modificado_por`) REFERENCES `usuarios` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -126,7 +125,7 @@ CREATE TABLE `bitacora_pacientes` (
 
 LOCK TABLES `bitacora_pacientes` WRITE;
 /*!40000 ALTER TABLE `bitacora_pacientes` DISABLE KEYS */;
-INSERT INTO `bitacora_pacientes` VALUES (1,126,'visita','2026-02-10 09:23:08','familiare',5,NULL,'activo',NULL,NULL),(2,126,'medicacion','2026-02-10 09:58:46','Medicación administrada: anapril 20\nVía: oral\nHora programada: 10:43\nHora administrada: 09:58\nObservaciones: Ninguna',5,NULL,'activo',NULL,NULL),(3,126,'aseo','2026-02-10 09:59:37','baño a las 7 am',5,NULL,'activo',NULL,NULL),(4,126,'incidente','2026-02-10 10:00:33','caida leve',5,NULL,'activo',NULL,NULL),(5,126,'actividad','2026-02-10 10:00:58','recreativa con los demas residentes',5,NULL,'activo',NULL,NULL),(6,126,'salud','2026-02-10 10:01:16','toma signos',5,NULL,'modificado',5,'nuevo ajuste'),(7,126,'salud','2026-02-10 10:05:06','toma signos 85/125',5,NULL,'activo',NULL,NULL),(8,93,'medicacion','2026-02-10 11:39:45','dosis ananapril',5,NULL,'activo',NULL,NULL),(9,126,'salud','2026-02-10 11:54:49','REGISTRO DE HISTORIAL MÉDICO\nFecha: 2026-02-10\nDiagnóstico: AMOXIL\nObservaciones: SIN TOMA\nRegistrado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(10,125,'salud','2026-02-10 11:56:43','REGISTRO DE HISTORIAL MÉDICO\nFecha: 2026-02-10\nDiagnóstico: VE MUCHAS SERIES DE SANGRE Y ASESINATOS\nObservaciones: VER MAS SERIES DE ZOMBIES\nRegistrado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(11,116,'salud','2026-02-10 14:04:22','Historial Medico\nFecha: 2026-02-10\nDiagnóstico: ZARNA\nObservaciones: VACUNARSE\nRegistrado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(12,116,'alimentacion','2026-02-10 14:05:20','especial de sopa de pollo',5,NULL,'activo',NULL,NULL),(13,45,'actividad','2026-02-10 16:16:52','NUEVA CAMA REGISTRADA:\nNúmero: CAMA 001\nHabitación: habitacion 102\nPiso: primer piso\nZona: A\nTipo: Individual\nEstado: Disponible\nRegistrado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(14,93,'actividad','2026-02-10 16:19:34','ASIGNACIÓN DE CAMA:\nResidente: Abril Terrón\nCama asignada: CAMA 001 (Habitación: habitacion 102)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL);
+INSERT INTO `bitacora_pacientes` VALUES (17,3,'actividad','2026-02-11 10:55:22','ASIGNACIÓN DE CAMA:\nResidente: ANA MORA\nCama asignada: A-101 (Habitación: Habitación 101)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(18,4,'actividad','2026-02-11 10:55:48','ASIGNACIÓN DE CAMA:\nResidente: CARLOS JIMÉNEZ\nCama asignada: A-102 (Habitación: Habitación 102)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(19,9,'actividad','2026-02-11 10:56:09','ASIGNACIÓN DE CAMA:\nResidente: ELENA QUIRÓS\nCama asignada: A-103 (Habitación: Habitación 103)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(20,7,'actividad','2026-02-11 10:56:15','ASIGNACIÓN DE CAMA:\nResidente: FLOR CASTILLO\nCama asignada: A-104 (Habitación: Habitación 104)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(21,2,'actividad','2026-02-11 10:56:23','ASIGNACIÓN DE CAMA:\nResidente: JOSÉ VARGAS\nCama asignada: A-105 (Habitación: Habitación 105)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(22,8,'actividad','2026-02-11 18:06:43','ASIGNACIÓN DE CAMA:\nResidente: JUAN CHAVES\nCama asignada: B-201 (Habitación: Habitación 201)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(23,1,'actividad','2026-02-11 18:06:57','ASIGNACIÓN DE CAMA:\nResidente: MARÍA RODRÍGUEZ\nCama asignada: B-202 (Habitación: Habitación 202)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(24,5,'actividad','2026-02-11 18:07:07','ASIGNACIÓN DE CAMA:\nResidente: PATRICIA SÁNCHEZ\nCama asignada: B-203 (Habitación: Habitación 203)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL),(25,6,'actividad','2026-02-11 18:07:25','ASIGNACIÓN DE CAMA:\nResidente: RAFAEL RAMÍREZ\nCama asignada: B-204 (Habitación: Habitación 204)\nMotivo: Ingreso\nObservaciones: \nAsignado por: Jeffry Venegas',5,NULL,'activo',NULL,NULL);
 /*!40000 ALTER TABLE `bitacora_pacientes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -152,7 +151,7 @@ CREATE TABLE `camas` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `numero` (`numero`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -161,8 +160,36 @@ CREATE TABLE `camas` (
 
 LOCK TABLES `camas` WRITE;
 /*!40000 ALTER TABLE `camas` DISABLE KEYS */;
-INSERT INTO `camas` VALUES (1,'CAMA 001','habitacion 102','primer piso','A','Individual','Ocupada','barandas laterales, mesa de noche.','',1,'2026-02-10 22:16:52','2026-02-10 22:19:34');
+INSERT INTO `camas` VALUES (1,'A-101','Habitación 101','Piso 1','A','Individual','Mantenimiento','Cama eléctrica, barandas laterales abatibles, colchón antiescaras, mesa de noche, llamador de enfermería','Cama en excelente estado, mantenimiento preventivo realizado el 01/02/2026',1,'2026-02-11 16:46:55','2026-02-12 14:22:30'),(2,'A-102','Habitación 102','Piso 1','A','Individual','Disponible','Cama manual, barandas fijas, colchón estándar, mesa de noche, luz de lectura','Requiere revisión de ruedas, hacen ruido al mover',1,'2026-02-11 16:46:55','2026-02-12 14:57:47'),(3,'A-103','Habitación 103','Piso 1','A','Individual','Ocupada','Cama eléctrica, colchón de presión alterna, barandas automáticas, mesa sobrecama','Paciente con alto riesgo de úlceras por presión',1,'2026-02-11 16:46:55','2026-02-11 16:56:09'),(4,'A-104','Habitación 104','Piso 1','A','Individual','Ocupada','Cama estándar, colchón viscoelástico, barandas laterales','Recién desinfectada, lista para nuevo ingreso',1,'2026-02-11 16:46:55','2026-02-11 16:56:15'),(5,'A-105','Habitación 105','Piso 1','A','Doble','Ocupada','Dos camas individuales, separador de ambiente, mesas de noche individuales','Habitación matrimonial, ideal para parejas',1,'2026-02-11 16:46:55','2026-02-11 16:56:23'),(6,'B-201','Habitación 201','Piso 1','B','Individual','Ocupada','Cama eléctrica, colchón de espuma viscoelástica, barandas automáticas','Equipada con televisor y sillón reclinable para visitas',1,'2026-02-11 16:46:55','2026-02-12 00:06:43'),(7,'B-202','Habitación 202','Piso 1','B','Individual','Ocupada','Cama eléctrica, sistema de elevación de paciente','En reparación por falla en motor de elevación, repuestos en camino',1,'2026-02-11 16:46:55','2026-02-12 00:06:57'),(8,'B-203','Habitación 203','Piso 1','B','Individual','Ocupada','Cama bariátrica, capacidad 250kg, colchón de alta densidad','Paciente con obesidad mórbida, cama especial',1,'2026-02-11 16:46:55','2026-02-12 00:07:07'),(9,'B-204','Habitación 204','Piso 1','B','Individual','Ocupada','Cama eléctrica, colchón antiescaras, sistema de oxígeno central','Reservada para ingreso programado 15/02/2026',1,'2026-02-11 16:46:55','2026-02-12 00:07:25'),(10,'B-205','Habitación 205','Piso 1','B','Doble','Disponible','Dos camas, una eléctrica y una manual, separador de privacidad','Habitación compartida, ideal para hermanos',1,'2026-02-11 16:46:55','2026-02-11 16:46:55');
 /*!40000 ALTER TABLE `camas` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `categorias_insumos`
+--
+
+DROP TABLE IF EXISTS `categorias_insumos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `categorias_insumos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `descripcion` text,
+  `activo` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `nombre` (`nombre`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `categorias_insumos`
+--
+
+LOCK TABLES `categorias_insumos` WRITE;
+/*!40000 ALTER TABLE `categorias_insumos` DISABLE KEYS */;
+INSERT INTO `categorias_insumos` VALUES (1,'Medicamentos','Fármacos y medicinas para tratamiento de pacientes',1,'2026-02-12 17:29:50'),(2,'Material de curación','Gasas, vendas, algodón, apósitos, etc.',1,'2026-02-12 17:29:50'),(3,'Insumos de enfermería','Jeringas, agujas, guantes, sondas, etc.',1,'2026-02-12 17:29:50'),(4,'Insumos de limpieza','Productos para limpieza y desinfección',1,'2026-02-12 17:29:50'),(5,'Alimentos y suplementos','Nutrición enteral, suplementos alimenticios',1,'2026-02-12 17:29:50'),(6,'Equipo médico','Equipos y dispositivos médicos reutilizables',1,'2026-02-12 17:29:50'),(7,'Papelería','Material administrativo y oficina',1,'2026-02-12 17:29:50'),(8,'Ropa y textil','Ropa de cama, uniformes, toallas',1,'2026-02-12 17:29:50'),(9,'Insumos de rehabilitación','Material para fisioterapia y rehabilitación',1,'2026-02-12 17:29:50'),(10,'Otros','Insumos varios no categorizados',1,'2026-02-12 17:29:50');
+/*!40000 ALTER TABLE `categorias_insumos` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -228,8 +255,46 @@ CREATE TABLE `historial_medico` (
 
 LOCK TABLES `historial_medico` WRITE;
 /*!40000 ALTER TABLE `historial_medico` DISABLE KEYS */;
-INSERT INTO `historial_medico` VALUES (20,65,'2024-02-15','Hipertensión arterial','Paciente con presión elevada. Se recomienda control diario.'),(21,65,'2024-03-01','Diabetes tipo 2','Se indicó dieta baja en azúcares y control de glucosa.'),(22,65,'2024-03-20','Infección urinaria','Tratamiento con antibióticos por 7 días.'),(23,65,'2024-04-05','Caída leve','Moretón en el brazo derecho. Se hizo control y no hay fracturas.'),(24,65,'2024-04-22','Revisión general','Estable. Se continuará con tratamiento actual.'),(40,105,'2025-06-03','DIBETES','OBSERVACION POR 15 DIAS'),(42,126,'2026-02-10','ANGUSITA SEVERA','NO PRESENTA MAS SINTOMAS'),(43,126,'2026-02-10','DIFOISIS','SIN COMPLICACIONES'),(44,126,'2026-02-10','AMOXIL','SIN TOMA'),(45,125,'2026-02-10','VE MUCHAS SERIES DE SANGRE Y ASESINATOS','VER MAS SERIES DE ZOMBIES'),(46,116,'2026-02-10','ZARNA','VACUNARSE');
 /*!40000 ALTER TABLE `historial_medico` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `insumos`
+--
+
+DROP TABLE IF EXISTS `insumos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `insumos` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `codigo` varchar(50) NOT NULL,
+  `nombre` varchar(200) NOT NULL,
+  `descripcion` text,
+  `categoria_id` int DEFAULT NULL,
+  `proveedor_id` int DEFAULT NULL,
+  `unidad_medida` varchar(50) DEFAULT NULL,
+  `stock_actual` int DEFAULT '0',
+  `stock_minimo` int DEFAULT '5',
+  `precio_compra` decimal(10,2) DEFAULT NULL,
+  `activo` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `codigo` (`codigo`),
+  KEY `categoria_id` (`categoria_id`),
+  KEY `proveedor_id` (`proveedor_id`),
+  CONSTRAINT `insumos_ibfk_1` FOREIGN KEY (`categoria_id`) REFERENCES `categorias_insumos` (`id`),
+  CONSTRAINT `insumos_ibfk_2` FOREIGN KEY (`proveedor_id`) REFERENCES `proveedores` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=54 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `insumos`
+--
+
+LOCK TABLES `insumos` WRITE;
+/*!40000 ALTER TABLE `insumos` DISABLE KEYS */;
+INSERT INTO `insumos` VALUES (1,'MED-001','ACETAMINOFÉN 500MG','Analgésico y antipirético, caja con 100 tabletas',1,1,'Caja',45,20,1250.00,1,'2026-02-12 17:29:50'),(2,'MED-002','IBUPROFENO 400MG','Antiinflamatorio no esteroideo, caja con 50 tabletas',1,1,'Caja',38,15,1450.00,1,'2026-02-12 17:29:50'),(3,'MED-003','LOSARTÁN 50MG','Antihipertensivo, caja con 30 tabletas',1,7,'Caja',52,20,2200.00,1,'2026-02-12 17:29:50'),(4,'MED-004','METFORMINA 850MG','Antidiabético oral, caja con 60 tabletas',1,7,'Caja',65,25,1850.00,1,'2026-02-12 17:29:50'),(5,'MED-005','AMOXICILINA 500MG','Antibiótico, caja con 14 cápsulas',1,1,'Caja',28,15,2500.00,1,'2026-02-12 17:29:50'),(6,'MED-006','OMEPRAZOL 20MG','Inhibidor de bomba de protones, caja con 28 cápsulas',1,1,'Caja',42,20,3200.00,1,'2026-02-12 17:29:50'),(7,'MED-007','SERTRALINA 50MG','Antidepresivo, caja con 30 tabletas',1,7,'Caja',18,10,3800.00,1,'2026-02-12 17:29:50'),(8,'MED-008','FUROSEMIDA 40MG','Diurético, caja con 20 tabletas',1,7,'Caja',15,8,1950.00,1,'2026-02-12 17:29:50'),(9,'MED-009','ENALAPRIL 10MG','Antihipertensivo, caja con 30 tabletas',1,1,'Caja',22,10,1750.00,1,'2026-02-12 17:29:50'),(10,'MED-010','INSULINA NPH','Insulina humana, frasco de 10ml',1,7,'Frasco',12,5,5200.00,1,'2026-02-12 17:29:50'),(11,'CUR-001','GASAS ESTÉRILES 10X10CM','Paquete con 10 unidades estériles',2,2,'Paquete',85,30,850.00,1,'2026-02-12 17:29:50'),(12,'CUR-002','VENDAS ELÁSTICAS 10CM','Venda de sujeción, unidad',2,2,'Unidad',120,40,550.00,1,'2026-02-12 17:29:50'),(13,'CUR-003','APÓSITOS ADHESIVOS','Caja con 50 unidades, 10x10cm',2,5,'Caja',45,15,1800.00,1,'2026-02-12 17:29:50'),(14,'CUR-004','ALGODÓN HIDRÓFILO','Paquete de 500 gramos',2,2,'Paquete',18,10,1450.00,1,'2026-02-12 17:29:50'),(15,'CUR-005','ESPARADRAPO QUIRÚRGICO','Rollo de 5cm x 10m',2,5,'Rollo',32,15,950.00,1,'2026-02-12 17:29:50'),(16,'CUR-006','GASA VASELINADA','Paquete con 5 unidades',2,2,'Paquete',25,10,2100.00,1,'2026-02-12 17:29:50'),(17,'CUR-007','SUERO FISIOLÓGICO','Botella de 500ml',2,2,'Botella',40,20,750.00,1,'2026-02-12 17:29:50'),(18,'CUR-008','YODO POVIDONA','Frasco de 120ml',2,5,'Frasco',22,12,1250.00,1,'2026-02-12 17:29:50'),(19,'ENF-001','JERINGAS 5ML','Caja con 100 unidades, con aguja',3,3,'Caja',52,20,3800.00,1,'2026-02-12 17:29:50'),(20,'ENF-002','JERINGAS 10ML','Caja con 100 unidades, con aguja',3,3,'Caja',15,20,4200.00,1,'2026-02-12 17:29:50'),(21,'ENF-003','AGUJAS HIPODÉRMICAS','Caja con 100 unidades, calibre 21G',3,3,'Caja',8,25,2800.00,1,'2026-02-12 17:29:50'),(22,'ENF-004','GUANTES DE LÁTEX TALLA M','Caja con 100 pares',3,3,'Caja',15,20,5200.00,0,'2026-02-12 17:29:50'),(23,'ENF-005','GUANTES DE NITRILO TALLA L','Caja con 100 pares, sin látex',3,3,'Caja',8,15,6100.00,1,'2026-02-12 17:29:50'),(24,'ENF-006','SONDAS NASOGÁSTRICAS','Unidad, calibre 16Fr',3,6,'Unidad',22,10,1350.00,1,'2026-02-12 17:29:50'),(25,'ENF-007','CATÉTERES IV','Caja con 50 unidades, calibre 20G',3,6,'Caja',18,10,4500.00,1,'2026-02-12 17:29:50'),(26,'ENF-008','MASCARILLAS QUIRÚRGICAS','Caja con 50 unidades',3,3,'Caja',35,25,1800.00,1,'2026-02-12 17:29:50'),(27,'ENF-009','GORROS QUIRÚRGICOS','Paquete con 20 unidades',3,3,'Paquete',25,15,950.00,1,'2026-02-12 17:29:50'),(28,'LIMP-001','ALCOHOL ETÍLICO 70°','Botella de 1 litro',4,8,'Botella',42,20,950.00,1,'2026-02-12 17:29:50'),(29,'LIMP-002','CLORO COMERCIAL','Botella de 3.78 litros',4,8,'Botella',18,10,1250.00,1,'2026-02-12 17:29:50'),(30,'LIMP-003','JABÓN LÍQUIDO ANTIBACTERIAL','Botella de 1 litro',4,8,'Botella',35,15,1150.00,1,'2026-02-12 17:29:50'),(31,'LIMP-004','DESINFECTANTE DE SUPERFICIES','Botella de 1 litro',4,8,'Botella',22,12,1250.00,1,'2026-02-12 17:29:50'),(32,'LIMP-005','BOLSAS PARA DESECHOS BIOPELIGROSOS','Paquete con 50 unidades, rojo',4,8,'Paquete',12,10,2800.00,1,'2026-02-12 17:29:50'),(33,'LIMP-006','TOALLAS DE PAPEL','Paquete con 100 hojas',4,8,'Paquete',28,15,950.00,1,'2026-02-12 17:29:50'),(34,'ALI-001','SUPLEMENTO NUTRICIONAL ENSURE','Caja con 24 botellas de 237ml, sabor vainilla',5,9,'Caja',15,8,25000.00,1,'2026-02-12 17:29:50'),(35,'ALI-002','GELATINA SIN AZÚCAR','Paquete con 10 sobres, sabor frutas',5,9,'Paquete',42,20,1450.00,1,'2026-02-12 17:29:50'),(36,'ALI-003','PURÉ DE FRUTAS','Bolsa de 1 kg, manzana',5,9,'Bolsa',8,10,1850.00,1,'2026-02-12 17:29:50'),(37,'ALI-004','CREMA DE ARROZ','Paquete de 500 gramos',5,9,'Paquete',8,8,1250.00,1,'2026-02-12 17:29:50'),(38,'ALI-005','AGUA EMBOTELLADA','Caja con 12 botellas de 500ml',5,9,'Caja',25,15,2200.00,1,'2026-02-12 17:29:50'),(39,'EQ-001','GLUCÓMETRO','Medidor de glucosa en sangre, incluye tiras',6,4,'Unidad',5,3,18500.00,1,'2026-02-12 17:29:50'),(40,'EQ-002','TENSIMÓMETRO DIGITAL','Monitor de presión arterial de brazo',6,4,'Unidad',4,3,22500.00,1,'2026-02-12 17:29:50'),(41,'EQ-003','TERMÓMETRO DIGITAL','Termómetro infrarrojo',6,4,'Unidad',8,5,9500.00,1,'2026-02-12 17:29:50'),(42,'EQ-004','OXÍMETRO DE PULSO','Medidor de saturación de oxígeno',6,4,'Unidad',6,4,15800.00,1,'2026-02-12 17:29:50'),(43,'PAP-001','RESMA DE PAPEL CARTA','Resma de 500 hojas, papel bond',7,NULL,'Resma',15,10,3500.00,1,'2026-02-12 17:29:50'),(44,'PAP-002','BOLÍGRAFOS','Caja con 50 unidades, color azul',7,NULL,'Caja',8,5,2500.00,1,'2026-02-12 17:29:50'),(45,'PAP-003','CARPETAS ARCHIVADORAS','Unidad, color negro',7,NULL,'Unidad',22,15,850.00,1,'2026-02-12 17:29:50'),(46,'PAP-004','ETIQUETAS ADHESIVAS','Paquete con 100 etiquetas',7,NULL,'Paquete',12,8,1200.00,1,'2026-02-12 17:29:50'),(47,'TEX-001','SÁBANA HOSPITALARIA','Juego de sábana bajera y encimera',8,10,'Juego',18,10,8500.00,1,'2026-02-12 17:29:50'),(48,'TEX-002','ALMOHADA HOSPITALARIA','Almohada antialérgica',8,10,'Unidad',12,8,6200.00,1,'2026-02-12 17:29:50'),(49,'TEX-003','TOALLA DE BAÑO','Toalla de algodón 70x140cm',8,10,'Unidad',25,15,3800.00,1,'2026-02-12 17:29:50'),(50,'TEX-004','UNIFORME DE ENFERMERÍA','Juego de pants y camisa',8,10,'Juego',8,6,12500.00,1,'2026-02-12 17:29:50'),(51,'REH-001','BANDAS ELÁSTICAS DE RESISTENCIA','Juego de 5 niveles de resistencia',9,6,'Juego',10,5,4500.00,1,'2026-02-12 17:29:50'),(52,'REH-002','PELOTAS DE REHABILITACIÓN','Pelota de 55cm para ejercicios',9,6,'Unidad',6,4,5800.00,1,'2026-02-12 17:29:50'),(53,'REH-003','MASAJEADOR MANUAL','Rodillo de espuma para terapia',9,6,'Unidad',8,5,3200.00,1,'2026-02-12 17:29:50');
+/*!40000 ALTER TABLE `insumos` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -268,8 +333,137 @@ CREATE TABLE `medicacion` (
 
 LOCK TABLES `medicacion` WRITE;
 /*!40000 ALTER TABLE `medicacion` DISABLE KEYS */;
-INSERT INTO `medicacion` VALUES (27,126,'ibuprofeno','500','intravenosa','1 vez al día','10:23','2026-02-05','2026-02-27','activa','',5,'2026-02-10 15:23:48','2026-02-10 15:23:48'),(28,126,'anapril','20','oral','1 vez al día','10:43','2026-02-10','2026-02-10','activa','',5,'2026-02-10 15:43:18','2026-02-10 15:43:18');
 /*!40000 ALTER TABLE `medicacion` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `movimientos_inventario`
+--
+
+DROP TABLE IF EXISTS `movimientos_inventario`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `movimientos_inventario` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `insumo_id` int NOT NULL,
+  `tipo` enum('Entrada','Salida','Ajuste') NOT NULL,
+  `cantidad` int NOT NULL,
+  `stock_anterior` int NOT NULL,
+  `stock_nuevo` int NOT NULL,
+  `usuario_id` int DEFAULT NULL,
+  `fecha` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `observacion` text,
+  PRIMARY KEY (`id`),
+  KEY `insumo_id` (`insumo_id`),
+  KEY `usuario_id` (`usuario_id`),
+  CONSTRAINT `movimientos_inventario_ibfk_1` FOREIGN KEY (`insumo_id`) REFERENCES `insumos` (`id`),
+  CONSTRAINT `movimientos_inventario_ibfk_2` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `movimientos_inventario`
+--
+
+LOCK TABLES `movimientos_inventario` WRITE;
+/*!40000 ALTER TABLE `movimientos_inventario` DISABLE KEYS */;
+INSERT INTO `movimientos_inventario` VALUES (1,1,'Entrada',5,40,45,5,'2026-02-12 17:29:50','Compra OC-2026-001'),(2,2,'Entrada',5,33,38,5,'2026-02-12 17:29:50','Compra OC-2026-001'),(3,5,'Entrada',3,25,28,5,'2026-02-12 17:29:50','Compra OC-2026-001'),(4,9,'Entrada',4,18,22,5,'2026-02-12 17:29:50','Compra OC-2026-001'),(5,11,'Entrada',10,75,85,5,'2026-02-12 17:29:50','Compra OC-2026-002'),(6,12,'Entrada',15,105,120,5,'2026-02-12 17:29:50','Compra OC-2026-002'),(7,14,'Entrada',5,13,18,5,'2026-02-12 17:29:50','Compra OC-2026-002'),(8,17,'Entrada',3,12,15,5,'2026-02-12 17:29:50','Compra OC-2026-003'),(9,18,'Entrada',3,15,18,5,'2026-02-12 17:29:50','Compra OC-2026-003'),(10,19,'Entrada',5,60,65,5,'2026-02-12 17:29:50','Compra OC-2026-003'),(11,21,'Entrada',2,6,8,5,'2026-02-12 17:29:50','Compra OC-2026-003'),(12,3,'Entrada',4,48,52,5,'2026-02-12 17:29:50','Compra OC-2026-004'),(13,4,'Entrada',6,59,65,5,'2026-02-12 17:29:50','Compra OC-2026-004'),(14,6,'Entrada',5,37,42,5,'2026-02-12 17:29:50','Compra OC-2026-004'),(15,13,'Entrada',3,42,45,5,'2026-02-12 17:29:50','Compra OC-2026-005'),(16,15,'Entrada',5,27,32,5,'2026-02-12 17:29:50','Compra OC-2026-005'),(17,16,'Entrada',2,23,25,5,'2026-02-12 17:29:50','Compra OC-2026-005'),(18,27,'Entrada',4,18,22,5,'2026-02-12 17:29:50','Compra OC-2026-005'),(19,29,'Entrada',8,34,42,5,'2026-02-12 17:29:50','Compra OC-2026-006'),(20,30,'Entrada',4,14,18,5,'2026-02-12 17:29:50','Compra OC-2026-006'),(21,31,'Entrada',6,29,35,5,'2026-02-12 17:29:50','Compra OC-2026-006'),(22,1,'Salida',-2,45,43,5,'2026-02-12 17:29:50','Consumo - Residente MARÍA RODRÍGUEZ'),(23,1,'Salida',-1,43,42,5,'2026-02-12 17:29:50','Consumo - Residente JOSÉ VARGAS'),(24,2,'Salida',-1,38,37,5,'2026-02-12 17:29:50','Consumo - Residente ANA MORA'),(25,3,'Salida',-1,52,51,5,'2026-02-12 17:29:50','Consumo - Residente CARLOS JIMÉNEZ'),(26,4,'Salida',-2,65,63,5,'2026-02-12 17:29:50','Consumo - Residente PATRICIA SÁNCHEZ'),(27,5,'Salida',-1,28,27,5,'2026-02-12 17:29:50','Consumo - Residente RAFAEL RAMÍREZ'),(28,11,'Salida',-5,85,80,5,'2026-02-12 17:29:50','Consumo - Curación de herida'),(29,12,'Salida',-3,120,117,5,'2026-02-12 17:29:50','Consumo - Vendajes varios'),(30,17,'Salida',-2,15,13,5,'2026-02-12 17:29:50','Consumo - Administración de medicamentos'),(31,18,'Salida',-1,18,17,5,'2026-02-12 17:29:50','Consumo - Administración de medicamentos'),(32,29,'Salida',-2,42,40,5,'2026-02-12 17:29:50','Consumo - Limpieza habitación 101'),(33,31,'Salida',-1,35,34,5,'2026-02-12 17:29:50','Consumo - Limpieza general'),(34,20,'Ajuste',-5,20,15,5,'2026-02-12 17:29:50','Ajuste por inventario - producto dañado'),(35,24,'Ajuste',-2,12,10,5,'2026-02-12 17:29:50','Ajuste por vencimiento'),(36,37,'Ajuste',-2,10,8,5,'2026-02-12 17:29:50','Ajuste por inventario');
+/*!40000 ALTER TABLE `movimientos_inventario` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `orden_compra_detalles`
+--
+
+DROP TABLE IF EXISTS `orden_compra_detalles`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `orden_compra_detalles` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `orden_id` int NOT NULL,
+  `insumo_id` int NOT NULL,
+  `cantidad` int NOT NULL,
+  `precio_unitario` decimal(10,2) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `orden_id` (`orden_id`),
+  KEY `insumo_id` (`insumo_id`),
+  CONSTRAINT `orden_compra_detalles_ibfk_1` FOREIGN KEY (`orden_id`) REFERENCES `ordenes_compra` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `orden_compra_detalles_ibfk_2` FOREIGN KEY (`insumo_id`) REFERENCES `insumos` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `orden_compra_detalles`
+--
+
+LOCK TABLES `orden_compra_detalles` WRITE;
+/*!40000 ALTER TABLE `orden_compra_detalles` DISABLE KEYS */;
+INSERT INTO `orden_compra_detalles` VALUES (1,1,1,5,1250.00),(2,1,2,5,1450.00),(3,1,5,3,2500.00),(4,1,9,4,1750.00),(5,2,11,10,850.00),(6,2,12,15,550.00),(7,2,14,5,1450.00),(8,3,17,3,3800.00),(9,3,18,3,4200.00),(10,3,19,5,2800.00),(11,3,21,2,6100.00),(12,4,3,4,2200.00),(13,4,4,6,1850.00),(14,4,6,5,3200.00),(15,5,13,3,1800.00),(16,5,15,5,950.00),(17,5,16,2,2100.00),(18,5,27,4,1250.00),(19,6,29,8,950.00),(20,6,30,4,1250.00),(21,6,31,6,1150.00),(22,7,1,6,1250.00),(23,7,2,6,1450.00),(24,7,5,4,2500.00),(25,8,35,2,25000.00),(26,8,37,5,1850.00),(27,9,17,2,3800.00),(28,9,18,2,4200.00),(29,9,24,4,1350.00),(30,10,38,2,18500.00),(31,10,39,2,22500.00),(32,10,40,3,9500.00),(33,11,5,15,2300.00),(34,11,28,5,2000.00);
+/*!40000 ALTER TABLE `orden_compra_detalles` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `ordenes_compra`
+--
+
+DROP TABLE IF EXISTS `ordenes_compra`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `ordenes_compra` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `numero_orden` varchar(50) NOT NULL,
+  `proveedor_id` int NOT NULL,
+  `fecha` date NOT NULL,
+  `estado` enum('Pendiente','Recibida','Cancelada') DEFAULT 'Pendiente',
+  `total` decimal(10,2) DEFAULT '0.00',
+  `creado_por` int DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `numero_orden` (`numero_orden`),
+  KEY `proveedor_id` (`proveedor_id`),
+  KEY `creado_por` (`creado_por`),
+  CONSTRAINT `ordenes_compra_ibfk_1` FOREIGN KEY (`proveedor_id`) REFERENCES `proveedores` (`id`),
+  CONSTRAINT `ordenes_compra_ibfk_2` FOREIGN KEY (`creado_por`) REFERENCES `usuarios` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `ordenes_compra`
+--
+
+LOCK TABLES `ordenes_compra` WRITE;
+/*!40000 ALTER TABLE `ordenes_compra` DISABLE KEYS */;
+INSERT INTO `ordenes_compra` VALUES (1,'OC-2026-001',1,'2026-02-01','Recibida',28000.00,5,'2026-02-12 17:29:50'),(2,'OC-2026-002',2,'2026-02-03','Recibida',24000.00,5,'2026-02-12 17:29:50'),(3,'OC-2026-003',3,'2026-02-05','Recibida',50200.00,5,'2026-02-12 17:29:50'),(4,'OC-2026-004',7,'2026-02-08','Recibida',35900.00,5,'2026-02-12 17:29:50'),(5,'OC-2026-005',5,'2026-02-10','Recibida',19350.00,5,'2026-02-12 17:29:50'),(6,'OC-2026-006',8,'2026-02-12','Recibida',19500.00,5,'2026-02-12 17:29:50'),(7,'OC-2026-007',1,'2026-02-15','Pendiente',26200.00,5,'2026-02-12 17:29:50'),(8,'OC-2026-008',9,'2026-02-16','Pendiente',59250.00,5,'2026-02-12 17:29:50'),(9,'OC-2026-009',3,'2026-02-17','Pendiente',21400.00,5,'2026-02-12 17:29:50'),(10,'OC-2026-010',4,'2026-02-18','Cancelada',110500.00,5,'2026-02-12 17:29:50'),(11,'OC-2026-0212114256',7,'2026-02-12','Pendiente',44500.00,5,'2026-02-12 17:42:56');
+/*!40000 ALTER TABLE `ordenes_compra` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `proveedores`
+--
+
+DROP TABLE IF EXISTS `proveedores`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `proveedores` (
+  `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(150) NOT NULL,
+  `telefono` varchar(50) DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `direccion` text,
+  `activo` tinyint(1) DEFAULT '1',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `proveedores`
+--
+
+LOCK TABLES `proveedores` WRITE;
+/*!40000 ALTER TABLE `proveedores` DISABLE KEYS */;
+INSERT INTO `proveedores` VALUES (1,'FARMACIA COSTARRICENSE S.A.','2256-7890','ventas@farmacostar.com','San José, Calle 20, Edificio Farma, 100 m este de la Catedral',1,'2026-02-12 17:29:50'),(2,'DISTRIBUIDORA MÉDICA NACIONAL','2245-6789','pedidos@dismedica.com','Heredia, Santo Domingo, 200 m norte del Mall Oxígeno',1,'2026-02-12 17:29:50'),(3,'PROVEEDORA GERIÁTRICA S.A.','2234-5678','ventas@provegeriatica.com','Alajuela, Residencial Las Flores, del BAC 300 m oeste',1,'2026-02-12 17:29:50'),(4,'TÉCNICOS EN SALUD CR','2290-1234','cotizaciones@tecnicossalud.com','Cartago, Barrio El Molino, contiguo a la Basílica',1,'2026-02-12 17:29:50'),(5,'INSUMOS HOSPITALARIOS CR','2278-4567','ventas@insumoscr.com','San José, Zapote, 100 m sur del ICE',1,'2026-02-12 17:29:50'),(6,'SUMINISTROS MÉDICOS DEL ESTE','2289-7654','info@suministrosmedicos.com','Curridabat, Condominio Industrial del Este',1,'2026-02-12 17:29:50'),(7,'FARMACÉUTICA NACIONAL','2258-9876','ventas@farmaceuticacr.com','San José, La Uruca, contiguo al Hospital México',1,'2026-02-12 17:29:50'),(8,'PROVEEDORA DE LIMPIEZA INTEGRAL','2250-4321','pedidos@limpiezacr.com','San José, Barrio Tournón, 75 m este de la Iglesia',1,'2026-02-12 17:29:50'),(9,'DISTRIBUIDORA DE ALIMENTOS SALUD','2232-5678','ventas@alimentossalud.com','Heredia, San Francisco, 150 m oeste del Palacio',1,'2026-02-12 17:29:50'),(10,'TEXTILES HOSPITALARIOS CR','2255-7890','ventas@textilescr.com','Alajuela, Barrio San José, del Parque 200 m sur',1,'2026-02-12 17:29:50');
+/*!40000 ALTER TABLE `proveedores` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -301,7 +495,7 @@ CREATE TABLE `residentes` (
   `activo` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`,`cedula`),
   UNIQUE KEY `cedula` (`cedula`)
-) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=latin1 COLLATE=latin1_spanish_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=latin1 COLLATE=latin1_spanish_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -310,7 +504,7 @@ CREATE TABLE `residentes` (
 
 LOCK TABLES `residentes` WRITE;
 /*!40000 ALTER TABLE `residentes` DISABLE KEYS */;
-INSERT INTO `residentes` VALUES (15,'Haydée','Rubio','Cárdenas','729784079','1958-03-17','Femenino','Divorciado','Indonesia','Ronda Rosalía Aguado 37, Ceuta, 47349','+34866256323','Florina Roberta Sanmartín Echeverría','Esposo','+34918 67 43 06','Sano','Ninguno','Independiente','Desorientado',1),(16,'Augusto','Barrera','Mariscal','974962561','1931-02-06','Femenino','Casado','Tayikistán','Acceso Cosme Huguet 6, Córdoba, 37981','+34921 385 726','Berta Lastra','Hijo','+34887 47 60 86','Alzheimer','Paracetamol','Con ayuda','Lúcido',1),(17,'Yaiza','Miró','Morillo','621320121','1948-01-09','Femenino','Soltero','Armenia','Cuesta de Vera Corominas 82 Puerta 4 , Girona, 36417','+34 803 02 44 20','Emiliano Omar Calderón Mulet','Nieto','+34973 272 684','Diabetes','Ibuprofeno','Independiente','Lúcido',1),(20,'José','Álamo','Pagès','941898744','1941-10-26','Masculino','Divorciado','Irán','Callejón Virginia Verdugo 858 Piso 6 , Ourense, 46391','+34 882 37 94 88','Paz Andres Pineda','Nieto','+34 947 62 96 21','Diabetes','Paracetamol','Dependiente','Demencia',1),(21,'Sara','Barberá','Molins','266582851','1961-09-08','Femenino','Casado','Malawi','Cañada Ramiro Goñi 9 Piso 8 , Huelva, 33309','+34827 19 94 22','Anselmo Expósito Torre','Hija','+34 887 715 000','Artritis','Ibuprofeno','Con ayuda','Lúcido',1),(22,'Soledad','Alvarado','Marqués','539775362','1942-01-23','Masculino','Soltero','Camerún','Camino Paca Perales 99, Palencia, 03196','+34 918 41 66 70','Encarnacion de Oliva','Hija','+34886 391 324','Hipertensión','Metformina','Con ayuda','Demencia',1),(23,'Ligia','Aller','Menéndez','367403824','1953-08-17','Masculino','Casado','República Centroafricana','Cañada de Ramón Ángel 651 Puerta 4 , Ceuta, 34938','+34927 390 852','Moreno Hierro-Arteaga','Sobrino','+34 821235897','Diabetes','Metformina','Dependiente','Desorientado',1),(24,'Pepe','Morcillo','Villalba','856459100','1945-03-19','Femenino','Viudo','Micronesia','Vial Soraya Colomer 27, Murcia, 31985','+34 810751950','Ciro Ferrández Ordóñez','Hijo','+34957 112 395','Diabetes','Metformina','Dependiente','Desorientado',1),(25,'Ruth','Arroyo','Villalonga','887843779','1938-09-19','Masculino','Casado','Bhután','Calle de Jacobo Calderón 60 Apt. 66 , Badajoz, 10402','+34 703341028','Reynaldo Guillen Serra','Hijo','+34956 845 006','Sano','Ibuprofeno','Dependiente','Lúcido',1),(26,'Jenaro','Bou','Ricart','782282741','1961-12-08','Femenino','Divorciado','Swazilandia','Urbanización Jacinta Urrutia 85 Piso 4 , Tarragona, 03062','+34724457471','Alma Hilda Palomares Guijarro','Nieto','+34955 82 59 89','Diabetes','Ninguno','Independiente','Desorientado',1),(27,'Lola','Herrero','Ribes','695797463','1937-04-25','Femenino','Divorciado','Congo','Vial Rómulo Luz 4, Las Palmas, 36693','+34 928742888','Régulo de Garriga','Hijo','+34 944806877','Diabetes','Paracetamol','Dependiente','Lúcido',1),(28,'Gloria','Mascaró','Manso','968645639','1959-08-25','Masculino','Soltero','Etiopía','Cañada de Flavia Álvaro 551 Puerta 2 , Tarragona, 38104','+34 982366086','Manuelita Vicens Baquero','Hijo','+34862471329','Alzheimer','Metformina','Dependiente','Desorientado',1),(29,'Chema','Ródenas','Correa','263028617','1952-11-27','Masculino','Viudo','Mauricio','Pasadizo de Itziar Cañas 819, Burgos, 31790','+34 849885483','Alonso Ribas Taboada','Hijo','+34975 00 65 28','Artritis','Ibuprofeno','Con ayuda','Lúcido',1),(30,'Anastasio','Sotelo','Lasa','214009060','1946-11-09','Femenino','Soltero','Palau','C. de Segismundo Batalla 66, Madrid, 16006','+34876769750','Desiderio Benavent Espinosa','Hermano','+34884 175 342','Hipertensión','Ninguno','Dependiente','Desorientado',1),(31,'Dan','Amo','Jaume','387201607','1938-09-25','Masculino','Soltero','Swazilandia','Camino Azahar Morán 20, Ceuta, 49145','+34 986 771 462','Dionisia Pereira Gibert','Hija','+34 872 79 83 23','Artritis','Paracetamol','Independiente','Demencia',1),(32,'Juan Francisco','Izquierdo','Olmo','913799798','1954-08-09','Femenino','Casado','Omán','C. de Severo Miranda 495 Puerta 0 , Madrid, 33429','+34822 673 041','Alex Arana-Baeza','Hijo','+34 845 77 21 24','Artritis','Losartán','Con ayuda','Desorientado',1),(33,'Cándida','Vives','Cardona','999633298','1961-10-04','Femenino','Soltero','Iraq','Pasaje de Telmo Torrecilla 7, Navarra, 01689','+34825323842','Olivia Carvajal Pinilla','Hermano','+34 820102940','Artritis','Metformina','Independiente','Demencia',1),(34,'Jordán','Noriega','Arribas','659829604','1933-05-12','Masculino','Soltero','Sudán del Sur','Rambla Chus Peralta 7 Piso 2 , Zamora, 42991','+34806 65 67 47','Vicente Luz Amaya','Hija','+34715 745 869','Artritis','Paracetamol','Con ayuda','Desorientado',1),(35,'Valerio','Royo','Sotelo','256987686','1961-05-01','Femenino','Casado','Sudáfrica','Pasaje Roxana Albero 851 Apt. 55 , Cuenca, 01953','+34 924 10 47 26','Felix Aguilera-Crespo','Hija','+34849 437 797','Alzheimer','Metformina','Con ayuda','Demencia',1),(36,'Odalys','Rey','Exposito','121955770','1952-05-05','Masculino','Viudo','Malta','Camino de Selena Narváez 3 Apt. 25 , Huelva, 32365','+34 925 134 056','Luis Cárdenas Goñi','Hermano','+34900015712','Artritis','Paracetamol','Con ayuda','Lúcido',1),(37,'Sigfrido','Báez','Guzman','746509801','1948-11-08','Masculino','Viudo','República Árabe Siria','Camino Heriberto Campoy 340 Puerta 7 , Alicante, 04490','+34 949825518','Remigio Cerezo','Hija','+34 920 054 203','Alzheimer','Ninguno','Independiente','Lúcido',1),(38,'Eugenio','Seco','Gual','581906687','1931-09-26','Femenino','Casado','Nueva Zelandia','Alameda de León Gálvez 92 Piso 0 , Girona, 15046','+34 879905468','Ciríaco Mateu Baena','Sobrino','+34 988 76 20 77','Alzheimer','Ibuprofeno','Con ayuda','Desorientado',1),(39,'Kike','Teruel','Guardiola','312569798','1940-12-24','Femenino','Divorciado','Noruega','Ronda de Ema Marcos 35, Ávila, 37764','+34826 37 40 82','Melchor Armengol Figuerola','Esposo','+34862 115 184','Hipertensión','Ninguno','Independiente','Demencia',1),(40,'Marcio','Rodríguez','Salazar','631086228','1964-05-30','Femenino','Divorciado','República de Macedonia del Norte','Camino Federico Segovia 42, Zamora, 26328','+34 879 51 52 24','Vicenta Valdés Saura','Esposo','+34 747 22 81 50','Sano','Metformina','Independiente','Demencia',1),(41,'Amalia','Romero','Díaz','609402367','1963-12-15','Masculino','Viudo','Perú','Callejón Lara Ojeda 30 Apt. 58 , Madrid, 16684','+34972 76 17 23','Alma Goñi-Cárdenas','Hijo','+34888211320','Sano','Ninguno','Independiente','Lúcido',1),(42,'Úrsula','Fuertes','Albero','553907606','1959-06-03','Masculino','Soltero','Dominicana','Calle de Goyo Coll 70, La Coruña, 31476','+34 960053341','Fernanda Otero Barrena','Hermano','+34846536624','Hipertensión','Paracetamol','Independiente','Desorientado',1),(43,'Marino','Blanes','Pera','915261542','1952-04-23','Femenino','Casado','Austria','Plaza de Perlita Noriega 3 Piso 7 , Ceuta, 22979','+34 826 203 840','Ascensión Estrada Díaz','Hijo','+34 924 791 829','Hipertensión','Paracetamol','Dependiente','Desorientado',1),(44,'Primitiva','Leal','Carnero','392994640','1957-04-09','Masculino','Soltero','Suriname','Glorieta de Humberto Agustí 57, León, 17432','+34 975 73 88 41','Eutropio de Calvet','Hija','+34983 306 905','Diabetes','Losartán','Dependiente','Lúcido',1),(45,'Primitivo','Gomila','Rovira','105817305','1952-03-17','Femenino','Soltero','Senegal','Camino de Dolores Rocamora 52, Teruel, 18403','+34 871 373 219','Ismael Villegas Cañellas','Hija','+34872 06 95 56','Sano','Ninguno','Independiente','Lúcido',1),(46,'Angelita','Ferrán','Berenguer','682196054','1935-02-25','Masculino','Viudo','Comoras','Via de Vinicio Larrea 4 Piso 1 , Tarragona, 43811','+34845555768','Rodolfo del Isern','Esposo','+34 979662057','Hipertensión','Ninguno','Dependiente','Lúcido',1),(47,'Carmen','Badía','Granados','607599520','1948-03-28','Masculino','Casado','Letonia','Via Cirino Ramis 853, Álava, 06880','+34 942 24 10 80','Dan Solís Bonet','Esposo','+34 974 372 126','Sano','Losartán','Independiente','Desorientado',1),(48,'Ale','Alcaraz','Haro','944412022','1933-12-27','Masculino','Soltero','Bangladesh','Pasadizo Eli Aparicio 6 Piso 7 , Vizcaya, 03397','+34 967240662','Florina Montenegro','Sobrino','+34 877 325 305','Alzheimer','Losartán','Independiente','Lúcido',1),(49,'Sosimo','Narváez','Quintero','168164876','1953-05-09','Masculino','Viudo','Timor-Leste','Pasadizo Maristela Fabra 996 Piso 8 , Murcia, 03768','+34927990004','Raimundo Riera Vicente','Hijo','+34948 30 18 72','Hipertensión','Ninguno','Con ayuda','Demencia',1),(50,'Hortensia','Chamorro','Pareja','127287493','1946-01-25','Femenino','Divorciado','Indonesia','Pasaje de Ernesto Lopez 81, La Rioja, 30617','+34 841528328','Emiliana Uribe Francisco','Hermano','+34807 372 225','Artritis','Ninguno','Independiente','Desorientado',1),(51,'Josep','Torralba','Bauzà','777581262','1942-09-14','Femenino','Soltero','Belice','Camino de Dafne Anguita 77 Apt. 93 , Badajoz, 15355','+34841 146 769','Leonardo Báez Ayuso','Hija','+34974 151 139','Diabetes','Ninguno','Con ayuda','Demencia',1),(52,'Marcelo','Terrón','Palomar','410485684','1948-10-04','Femenino','Viudo','Papua Nueva Guinea','Urbanización Socorro Berrocal 35 Apt. 13 , Vizcaya, 23774','+34 885509478','Gabino Enríquez Cuevas','Nieto','+34 983 440 872','Artritis','Ninguno','Independiente','Desorientado',1),(53,'Matías','Almansa','Lopez','638144969','1936-12-06','Femenino','Soltero','Paraguay','C. Mar Perera 37 Puerta 8 , Badajoz, 01047','+34 983 63 51 72','Natalia Casas Guardia','Nieto','+34 887261360','Sano','Ibuprofeno','Independiente','Demencia',1),(54,'Leopoldo','Espinosa','Somoza','558142879','1942-04-09','Femenino','Casado','Indonesia','Via Borja Guerrero 96 Piso 7 , Zamora, 21655','+34 981 679 626','Emilio Piñol Aragonés','Hermano','+34974910941','Diabetes','Ninguno','Dependiente','Desorientado',1),(55,'Aitor','Pozuelo','Ureña','605394589','1941-08-27','Femenino','Soltero','El Salvador','Vial Miguel Escobar 11 Piso 8 , Cantabria, 38489','+34878 40 69 03','Griselda Redondo Gargallo','Hijo','+34 942 003 180','Artritis','Ninguno','Independiente','Lúcido',1),(57,'Fidel','Alfaro','Cánovas','320261612','1929-11-26','Femenino','Viudo','Bulgaria','Plaza Pascuala Iriarte 85 Apt. 70 , Jaén, 34504','+34 985 414 840','Édgar Domínguez Gracia','Hijo','+34877 97 21 17','Hipertensión','Metformina','Independiente','Desorientado',1),(58,'Cándido','Araujo','Torralba','503539312','1937-10-28','Masculino','Casado','Mauricio','Alameda Reynaldo Alberdi 6, Ceuta, 27474','+34 986 831 797','Abraham Cuenca Tejera','Sobrino','+34 849 80 64 24','Diabetes','Ibuprofeno','Dependiente','Lúcido',1),(59,'Ainara','Lara','Paz','149157425','1959-04-11','Masculino','Soltero','Cuba','Vial de Javiera Tormo 72 Apt. 30 , Salamanca, 39556','+34 885436026','Íñigo Badía-Valencia','Esposo','+34 845634523','Hipertensión','Ninguno','Dependiente','Desorientado',1),(60,'Lucas','Casas','Fernández','990156833','1950-03-14','Femenino','Viudo','Islas Salomón','Cuesta Juan José Gisbert 45 Puerta 9 , Guadalajara, 32359','+34 876 140 030','Clarisa Arce Martínez','Esposo','+34900885325','Diabetes','Paracetamol','Con ayuda','Lúcido',1),(65,'REBECA','LUNA','BOLAÑOS','412025665','2005-11-24','Femenino','Soltero','COSTA RICA','ALAJUELA','89754526','ANGELICA LUNA BOLAÑOS','HERMANA','88995566','LOQUERA','LORAZEPAN','Independiente','Demencia',1),(66,'FUGIAT','ALIAS','EXERCITATI','Animi voluptas moll','1995-01-27','Otro','Soltero','ET HIC NULLA MAXIME','NIHIL ET QUASI AB VO','+1 (121) 806-5223','SOLUTA ID LAUDANTIU','NULLA FUGIAT VOLUPT','Et consequat Corpor','EXPEDITA EST EXERCI','ASPERIORES DELENITI','Dependiente','Demencia',1),(67,'Manola','Haro','Uribe','919545643','1934-08-09','Masculino','Divorciado','Bahrein','Acceso de Benigna Manso 403, Badajoz, 20532','+34 922 06 82 33','Encarnacion Rovira Elorza','Sobrino','+34944 67 04 82','Alzheimer','Losartán','Con ayuda','Demencia',1),(68,'Eloy','Machado','Almazán','910517301','1935-03-23','Masculino','Divorciado','Bosnia y Herzegovina','Glorieta Narcisa Pou 7, Guipúzcoa, 09412','+34872 43 89 73','Alcides Mateu Carbó','Sobrino','+34987738333','Alzheimer','Ninguno','Con ayuda','Desorientado',1),(69,'Manu','Ortuño','Orozco','442983430','1950-09-25','Masculino','Casado','República Checa','Ronda de Cristina Pacheco 739, Cuenca, 38475','+34744 25 78 76','Blanca Rosales Riquelme','Hija','+34807877218','Hipertensión','Metformina','Dependiente','Desorientado',1),(70,'Isaías','Cárdenas','Pablo','825736898','1939-05-24','Masculino','Divorciado','Azerbaiyán','Callejón Pedro Carbonell 12, Valladolid, 29852','+34 823417693','Sarita Badía Figuerola','Hermano','+34814 280 228','Diabetes','Ibuprofeno','Con ayuda','Demencia',1),(71,'Nicodemo','Andres','Mora','665685090','1938-05-28','Femenino','Casado','Uruguay','Acceso Gema Paredes 9 Piso 6 , Zamora, 21844','+34971 889 114','Eusebio Canals','Esposo','+34 885 961 434','Hipertensión','Ninguno','Independiente','Lúcido',1),(72,'Ruben','Contreras','Riquelme','755388706','1949-05-10','Femenino','Soltero','España','Cañada de Almudena Tejada 49, Barcelona, 03478','+34 949 08 37 58','Lilia Celestina Cózar Albero','Esposo','+34 926 56 56 30','Alzheimer','Ibuprofeno','Con ayuda','Demencia',1),(73,'Bernabé','Cabello','Cabeza','484628442','1955-09-18','Masculino','Casado','Belice','Plaza de Osvaldo Marin 37 Puerta 2 , Huelva, 34922','+34 988 90 16 70','David de Sastre','Hijo','+34874819892','Sano','Losartán','Con ayuda','Desorientado',1),(74,'Ale','Sola','Clemente','466841151','1944-12-25','Femenino','Soltero','Vietman','Acceso Raimundo Ramírez 45 Piso 0 , Granada, 32934','+34976 792 407','Clotilde Madrid Perera','Hija','+34 828 97 85 41','Alzheimer','Ninguno','Independiente','Lúcido',1),(75,'Agapito','Perez','Ballester','598670309','1946-01-03','Masculino','Soltero','Chipre','Pasaje Jeremías Vigil 91 Puerta 2 , Córdoba, 24533','+34820 42 01 40','Quique Ariel Caballero Ojeda','Hijo','+34 981429751','Hipertensión','Ninguno','Con ayuda','Lúcido',1),(76,'Albino','Clavero','Benítez','223372159','1954-05-30','Masculino','Viudo','República de Macedonia del Norte','Vial Francisco Jose Lara 6 Apt. 22 , Ávila, 36233','+34 914670821','Calisto Clavero','Nieto','+34 900 500 618','Sano','Ninguno','Con ayuda','Lúcido',1),(77,'Jordán','Sastre','Cobo','969315517','1950-11-16','Femenino','Soltero','Granada','Calle de Beatriz Camacho 8, Valencia, 44894','+34 882587341','Nazaret Eugenia Montero Camacho','Sobrino','+34 900468868','Alzheimer','Paracetamol','Con ayuda','Desorientado',1),(78,'Andrés','Puente','Álamo','932229771','1954-08-31','Femenino','Casado','Guinea','Calle Pía Pujadas 4 Piso 4 , Pontevedra, 50812','+34 901 190 271','Inmaculada Vila','Hija','+34986976892','Hipertensión','Metformina','Con ayuda','Lúcido',1),(79,'Rosa','Cerro','Capdevila','149503013','1947-10-06','Femenino','Divorciado','Malawi','Avenida Cebrián Aragonés 61, Vizcaya, 34002','+34 881616757','Valentín Goicoechea Sanz','Hermano','+34926 249 686','Diabetes','Ibuprofeno','Dependiente','Lúcido',1),(80,'Guadalupe','Benavente','Barrera','260778981','1963-02-09','Masculino','Viudo','Granada','Cuesta Geraldo Boada 39, Segovia, 26132','+34 877 664 849','Alba Gárate Ríos','Hermano','+34988 23 36 94','Artritis','Paracetamol','Con ayuda','Desorientado',1),(81,'Dora','Escudero','Feliu','747667447','1955-10-25','Masculino','Soltero','Maldivas','Glorieta de Palmira Batalla 62 Piso 4 , Almería, 20613','+34945 156 379','Eva Camps Marquez','Hijo','+34 942 765 448','Alzheimer','Metformina','Independiente','Demencia',1),(82,'Eutimio','Jurado','Barco','251676619','1940-02-21','Masculino','Casado','Timor-Leste','Avenida de Herminio Torrent 48, Cádiz, 38065','+34 823911206','Édgar Bonet Pujol','Sobrino','+34825 883 570','Diabetes','Ibuprofeno','Independiente','Lúcido',1),(83,'Lilia','Téllez','Ponce','340749474','1935-08-09','Masculino','Divorciado','Islandia','Plaza Angelita Valverde 6, León, 38358','+34 971 566 416','Eufemia Gimenez Soriano','Hijo','+34984 215 184','Alzheimer','Metformina','Independiente','Desorientado',1),(84,'Elpidio','Sedano','Amigó','759301044','1937-11-06','Masculino','Divorciado','Canadá','C. Pepita Cabrera 943, Tarragona, 49886','+34 930 862 524','Andrea Nuñez-Calderon','Hija','+34 883482912','Diabetes','Paracetamol','Con ayuda','Lúcido',1),(85,'Bibiana','Ayllón','Barrera','724338108','1952-05-11','Masculino','Casado','Somalia','Plaza Saturnino Peñas 45, Álava, 48439','+34 823 958 242','Francisca Coronado Arce','Esposo','+34 901 38 82 58','Hipertensión','Ibuprofeno','Con ayuda','Demencia',1),(86,'JUAN CARLOS','VIÑAS','LILLO','853444270','1962-01-11','Masculino','Casado','REPÚBLICA POPULAR DEMOCRÁTICA DE COREA','CAMINO NIDIA PELÁEZ 27 PUERTA 7 , BALEARES, 08470','+34846 239 802','JULIO CÉSAR MÁRMOL','SOBRINO','+34901 280 057','ALZHEIMER','LOSARTÁN','Dependiente','Lúcido',1),(87,'Juan Francisco','Jiménez','Narváez','121858786','1945-12-02','Masculino','Divorciado','Sudáfrica','Avenida de Galo Vara 849 Apt. 94 , Castellón, 29828','+34824 69 21 62','José Luis Puerta Campoy','Hijo','+34 844 612 545','Alzheimer','Paracetamol','Independiente','Desorientado',1),(88,'Amelia','Hierro','Amor','732677422','1958-05-01','Femenino','Casado','Jordania','Camino Paz Sola 3 Piso 2 , Navarra, 51511','+34 880039677','Jesusa Carreras Coloma','Hermano','+34 849876042','Hipertensión','Ninguno','Dependiente','Lúcido',1),(89,'Toni','Carbonell','Buendía','545011691','1950-10-25','Masculino','Soltero','Maldivas','Urbanización de Febe Fabra 60 Apt. 29 , Baleares, 05298','+34 837803522','Ana Blasco Donoso','Sobrino','+34960130053','Hipertensión','Losartán','Dependiente','Desorientado',1),(90,'Teófilo','Bernat','Sanz','406102292','1932-04-20','Masculino','Soltero','Finlandia','Urbanización de Modesta Márquez 28 Puerta 6 , Murcia, 03990','+34 902 974 552','Malena Mulet Tormo','Hija','+34875572956','Diabetes','Ibuprofeno','Independiente','Lúcido',1),(91,'Olga','Amores','Solís','622822932','1948-12-29','Femenino','Divorciado','Luxemburgo','Pasaje Bárbara Jiménez 580 Puerta 8 , Huesca, 28794','+34922 94 28 70','Cipriano Barragán Cifuentes','Nieto','+34806 773 935','Artritis','Losartán','Con ayuda','Lúcido',1),(92,'Renato','Bauzà','Rocha','923299087','1949-09-23','Masculino','Viudo','Letonia','Cuesta de Rosalva Pareja 40, Guipúzcoa, 22389','+34 944026200','Azucena del Cáceres','Esposo','+34 943671802','Sano','Ibuprofeno','Con ayuda','Demencia',1),(93,'Abril','Terrón','Salas','416851838','1931-01-27','Femenino','Casado','República Dominicana','Acceso Nereida Tejedor 2 Piso 7 , Zamora, 09084','+34 924753134','Azahar Acedo Malo','Nieto','+34 880297112','Sano','Metformina','Dependiente','Desorientado',1),(94,'Felipe','Estevez','Bas','408549125','1955-10-20','Masculino','Casado','Saint Kitts y Nevis','Pasadizo de Eliana Calvet 262, Asturias, 30349','+34 980947901','Reynaldo Mate Solsona','Hija','+34 872430631','Diabetes','Ninguno','Con ayuda','Desorientado',1),(95,'Agapito','Pujol','Carnero','990004639','1951-02-06','Femenino','Soltero','Croacia','Callejón de Fidela Lasa 1 Apt. 82 , Baleares, 17528','+34825 36 49 47','Rodrigo Ramirez-Llorente','Nieto','+34 707 42 09 57','Sano','Losartán','Dependiente','Lúcido',1),(96,'Mario','Manjón','Nogués','834055760','1965-02-03','Femenino','Divorciado','China','Plaza Julián Puga 88 Piso 3 , Córdoba, 21220','+34901 53 54 49','Olegario Lasa Benavides','Nieto','+34848 150 788','Hipertensión','Paracetamol','Dependiente','Demencia',1),(97,'Joel','Peralta','Arregui','234442625','1962-12-30','Masculino','Casado','Colombia','Calle Valerio Sureda 2 Piso 9 , Vizcaya, 44793','+34946 28 03 42','Isabel Llamas Velasco','Hija','+34874242221','Alzheimer','Ninguno','Independiente','Desorientado',1),(98,'Toribio','Querol','Cueto','527503190','1931-10-19','Masculino','Casado','Guatemala','Ronda de Lorenzo Prieto 35 Puerta 6 , Zaragoza, 11588','+34977 867 521','Omar Llamas Isern','Nieto','+34924 766 398','Alzheimer','Ibuprofeno','Dependiente','Desorientado',1),(99,'Isidoro','Esteve','Gutiérrez','250173341','1935-01-16','Masculino','Divorciado','Costa Rica','Via Calisto Bueno 79, Huesca, 44024','+34 884795020','Eleuterio Barberá Carrasco','Hijo','+34 947 79 01 77','Artritis','Ibuprofeno','Con ayuda','Desorientado',1),(100,'Rosario','Lerma','Mateos','177072532','1948-01-29','Femenino','Viudo','República Popular Democrática de Corea','Acceso María Cristina Chacón 681, Alicante, 46128','+34927469056','Esperanza Nuñez Solano','Hijo','+34946 243 282','Sano','Ibuprofeno','Independiente','Lúcido',1),(101,'Chucho','Vigil','Cáceres','557826927','1962-04-09','Femenino','Soltero','República Árabe Siria','Urbanización de Joan Izaguirre 52, Pontevedra, 14047','+34 975 948 290','Patricio Cerdán Estrada','Nieto','+34 927 20 20 36','Sano','Ninguno','Con ayuda','Lúcido',1),(102,'Francisco Javier','Calvet','Teruel','455222295','1949-07-25','Masculino','Viudo','Francia','Vial de Anastasio Company 55, León, 22206','+34942 829 700','Yaiza Fernandez','Hija','+34836 87 07 83','Alzheimer','Metformina','Dependiente','Desorientado',1),(103,'Marcelo','Vall','Álamo','801584506','1959-12-07','Masculino','Divorciado','Rwanda','Pasaje de Eufemia Villegas 614 Apt. 54 , Soria, 11218','+34949233248','Narciso Soler Cabañas','Esposo','+34946 26 67 16','Diabetes','Losartán','Con ayuda','Lúcido',1),(104,'Montserrat','Vallejo','Rocamora','547871891','1934-12-20','Masculino','Divorciado','Malta','Camino Inés Sabater 15 Apt. 18 , León, 38778','+34884 91 23 89','Urbano del Doménech','Nieto','+34719 161 932','Artritis','Metformina','Independiente','Demencia',1),(105,'María','Quintana','Céspedes','571001728','1945-04-14','Femenino','Soltero','Gabón','C. Dolores Ríos 7 Piso 8 , Salamanca, 51924','+34843841976','Conrado Teruel Nicolau','Hija','+34 986 806 843','Diabetes','Metformina','Con ayuda','Lúcido',1),(106,'Ámbar','Jimenez','Torrent','710051123','1949-02-04','Femenino','Viudo','Etiopía','Camino de Anabel Carbonell 946, La Rioja, 51906','+34979 288 448','Renato Estévez','Hija','+34 708357708','Diabetes','Metformina','Dependiente','Lúcido',1),(107,'Jenaro','Reyes','Mariscal','576461571','1944-08-17','Femenino','Divorciado','Italia','Paseo Jimena Múñiz 21 Piso 8 , Sevilla, 12010','+34 921587421','Marco Torrents Codina','Hijo','+34 943 42 60 41','Alzheimer','Ninguno','Dependiente','Lúcido',1),(108,'Poncio','Cabañas','Garzón','519784251','1948-02-12','Femenino','Soltero','Armenia','Callejón de Cosme Cañizares 764, Lleida, 43960','+34 985 28 93 13','Custodia Valderrama Niño','Hijo','+34971 23 37 87','Alzheimer','Paracetamol','Dependiente','Demencia',1),(110,'Araceli','Huguet','Castells','684860968','1942-05-27','Masculino','Soltero','Australia','Glorieta Tecla Rueda 84, Tarragona, 32037','+34 916883699','Federico Tristán España Tamarit','Nieto','+34826133846','Sano','Ninguno','Con ayuda','Lúcido',1),(111,'Celso','Cabrera','Tormo','589515155','1942-09-15','Femenino','Divorciado','Namibia','Cañada de Saturnina Tormo 83, Málaga, 22854','+34 881552488','Reyes Patiño Anguita','Nieto','+34 711 134 526','Sano','Ibuprofeno','Con ayuda','Desorientado',1),(112,'Buenaventura','Pellicer','Cañas','704175912','1938-07-19','Masculino','Viudo','Jordania','Glorieta Pepe Porcel 558 Puerta 6 , Guadalajara, 36615','+34 946 813 342','Nélida Vázquez Navarro','Hija','+34 987 84 37 21','Diabetes','Losartán','Independiente','Demencia',1),(113,'Domingo','Gallego','Torrijos','578887544','1963-01-13','Femenino','Soltero','Ecuador','Cañada Chuy Barros 922 Apt. 33 , Cantabria, 12575','+34973 983 741','Clara Polo Alcalde','Nieto','+34 887 694 766','Hipertensión','Ibuprofeno','Dependiente','Demencia',1),(114,'Víctor','León','Matas','455892246','1930-04-08','Femenino','Viudo','Belice','Glorieta Ámbar Carreño 19 Puerta 8 , Álava, 17420','+34 841 41 96 83','Juan Francisco Calleja Murillo','Esposo','+34717 45 07 67','Sano','Ninguno','Dependiente','Desorientado',1),(115,'Teodora','Noguera','Rocamora','609379346','1964-02-28','Femenino','Soltero','Rwanda','Ronda Hortensia Acosta 23, La Rioja, 51977','+34923958468','Lope Cadenas Gonzalo','Esposo','+34949 371 287','Sano','Ninguno','Independiente','Lúcido',1),(116,'Victorino','Toro','Amigó','641067641','1955-01-02','Masculino','Casado','República Democrática Popular Lao','Glorieta de Aurelia Tejedor 44 Piso 7 , Toledo, 13266','+34 887962810','patric','Nieto','+34928 202 862','Diabetes','Ibuprofeno','Con ayuda','Lúcido',1),(125,'SUSANA','ESQUIVEL','SANCHEZ','111111','2005-10-18','Femenino','Soltero','COSTA RICA','HEREDIA','88555555','TATAN','PADRE','888888',NULL,NULL,'Independiente','Demencia',1),(126,'CARLOS','FONSECA','ARROYO','2222','2026-01-30','Masculino','Divorciado','COSTA RICA','HEREDIA','88555555','DIEGO','PADRE','888888',NULL,NULL,'Independiente','Lúcido',0);
+INSERT INTO `residentes` VALUES (1,'MARÍA','RODRÍGUEZ','QUESADA','101237456','1945-03-12','Femenino','Viudo','COSTA RICA','Barrio Amón, San José, 100 m este de la Plaza de la Democracia','8875-1234','CARLOS RODRÍGUEZ','HIJO','8875-5678','Diabetes tipo 2, Hipertensión arterial','Metformina 850mg, Losartán 50mg','Con ayuda','Lúcido',1),(2,'JOSÉ','VARGAS','MADRIGAL','1056791','1938-07-25','Masculino','Casado','COSTA RICA','Urbanización Lomas del Río, Pavas, San José','8876-9012','ANA VARGAS','ESPOSA','8876-3456','Alzheimer etapa temprana, Artritis reumatoide','Donepezilo 10mg, Ibuprofeno 400mg','Independiente','Desorientado',1),(3,'ANA','MORA','CASTRO','10892035','1950-11-30','Femenino','Soltero','COSTA RICA','Condominio Bosques de Lindora, Santa Ana','7089-4567','LAURA MORA','HIJA','7089-8901','Ninguna','Ninguno','Independiente','Lúcido',1),(4,'CARLOS','JIMÉNEZ','FALLAS','112340566','1935-09-18','Masculino','Divorciado','COSTA RICA','Barrio Fátima, Desamparados, San José','8345-6789','ROBERTO JIMÉNEZ','HIJO','8345-1234','Hipertensión, Osteoporosis, Parkinson','Losartán 50mg, Levodopa/Carbidopa','Dependiente','Lúcido',1),(5,'PATRICIA','SÁNCHEZ','ARAYA','206780124','1942-02-28','Femenino','Casado','COSTA RICA','Barrio San Vicente, Santo Domingo de Heredia','2234-5678','FERNANDO SÁNCHEZ','ESPOSO','2234-9012','Artritis, Colesterol alto','Atorvastatina 20mg','Con ayuda','Lúcido',1),(6,'RAFAEL','RAMÍREZ','CAMPOS','304560780','1948-06-14','Masculino','Viudo','COSTA RICA','Urbanización Los Ángeles, San Rafael de Alajuela','2445-6789','MÓNICA RAMÍREZ','HIJA','2445-1234','Enfermedad Pulmonar Obstructiva Crónica (EPOC)','Salbutamol inhalador','Con ayuda','Lúcido',1),(7,'FLOR','CASTILLO','AGUILAR','407890734','1939-12-05','Femenino','Viudo','COSTA RICA','Barrio El Molino, Cartago centro','2550-7890','JORGE CASTILLO','HIJO','2550-4321','Diabetes tipo 1, Neuropatía diabética','Insulina NPH, Pregabalina 75mg','Dependiente','Desorientado',1),(8,'JUAN','CHAVES','ROJAS','509870124','1944-08-20','Masculino','Casado','COSTA RICA','Barrio El Carmen, Liberia, Guanacaste','2666-7890','MARÍA CHAVES','ESPOSA','2666-5432','Hipertensión, Insuficiencia cardíaca leve','Enalapril 10mg, Furosemida 40mg','Con ayuda','Lúcido',1),(9,'ELENA','QUIRÓS','NAVARRO','608928345','1941-01-15','Femenino','Soltero','COSTA RICA','Barrio El Pacífico, Puntarenas centro','2661-7890','MANUEL QUIRÓS','HERMANO','2661-4321','Hipotiroidismo, Depresión mayor','Levotiroxina 100mcg, Sertralina 50mg','Independiente','Demencia',1);
 /*!40000 ALTER TABLE `residentes` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -333,7 +527,7 @@ CREATE TABLE `usuarios` (
   UNIQUE KEY `username_UNIQUE` (`username`),
   UNIQUE KEY `correo` (`correo`),
   KEY `idx_rol` (`rol`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -342,7 +536,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (5,'admin','jeffrivg@gmail.com','scrypt:32768:8:1$LeuENiNYjx34I5r1$73b09e440361c3358fbe81ead389ec3c7daf752631f94387ef98ca2b4619533c7690aa76e1894fc59b936642c6aad86fd281b19da35c8dd82fbc9b02ec9a48f9','administrador','Jeffry Venegas',1),(6,'carlos','carlos@ga.com','scrypt:32768:8:1$SbTeVqJQ58DhGzCh$275098fb542809da11aa789de8e173480dd460589b30dd9858455c5b5c6c196054cae4fbffbe6fc612a8c7c0b59651838475c04046f60e1a72329629f10271db','medico','carlos fonseca arrollo',1),(7,'mcampos','mcampos@uh.com','pbkdf2:sha256:1000000$0yacfvl5IVkgexn8$bba6374bed6987e7fdeeeac3ff845b8d7db6a148ccf0ecde3023f68b647aeeaf','enfermeria','Manuel Campos',1);
+INSERT INTO `usuarios` VALUES (5,'admin','jeffrivg@gmail.com','scrypt:32768:8:1$LeuENiNYjx34I5r1$73b09e440361c3358fbe81ead389ec3c7daf752631f94387ef98ca2b4619533c7690aa76e1894fc59b936642c6aad86fd281b19da35c8dd82fbc9b02ec9a48f9','administrador','Jeffry Venegas',1),(6,'carlos','carlos@ga.com','scrypt:32768:8:1$SbTeVqJQ58DhGzCh$275098fb542809da11aa789de8e173480dd460589b30dd9858455c5b5c6c196054cae4fbffbe6fc612a8c7c0b59651838475c04046f60e1a72329629f10271db','medico','carlos fonseca arrollo',1),(7,'mcampos','mcampos@uh.com','pbkdf2:sha256:1000000$0yacfvl5IVkgexn8$bba6374bed6987e7fdeeeac3ff845b8d7db6a148ccf0ecde3023f68b647aeeaf','enfermeria','Manuel Campos',1),(8,'sesquivel','sesquivel@gmail.com','pbkdf2:sha256:1000000$S7mZ3MkOCTZe6S6H$8c20b8d4c448324f9c02c4413fce5fb8cd307c49eba1e7671069b0a66f6ec358','administrador','Susana Esquivel Sanchez',1);
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -355,4 +549,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-02-11  7:16:58
+-- Dump completed on 2026-02-12 15:38:45

@@ -1,408 +1,385 @@
 {% include '/modulos/clientes/admin_header.html' %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 mb-0">Gestión de Camas</h1>
+<div class="container-fluid py-3">
+    <!-- Header simple -->
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h2 class="h4 fw-normal mb-0">Gestión de Camas</h2>
         <div>
-            <a href="{{ url_for('dashboard_camas') }}" class="btn btn-info me-2">
-                <i class="fas fa-chart-bar"></i> Dashboard
+            <a href="{{ url_for('dashboard_camas') }}" class="btn btn-sm btn-outline-secondary me-1">
+                Dashboard
             </a>
-            <a href="{{ url_for('crear_cama') }}" class="btn btn-primary">
-                <i class="fas fa-bed"></i> Nueva Cama
+            <a href="{{ url_for('crear_cama') }}" class="btn btn-sm btn-outline-primary">
+                + Nueva Cama
             </a>
         </div>
     </div>
 
-    <!-- Estadísticas -->
-    {% if stats %}
-    <div class="row mb-4">
-        <div class="col-md-2">
-            <div class="card border-primary">
-                <div class="card-body text-center">
-                    <h5 class="card-title">{{ stats.total }}</h5>
-                    <p class="card-text text-muted">Total Camas</p>
+    <!-- Filtros minimalistas -->
+    <div class="mb-4 p-3 bg-light border rounded">
+        <h6 class="fw-normal mb-2">Filtros</h6>
+        <form method="get" class="row g-2">
+            <div class="col-md-3">
+                <select name="estado" class="form-select form-select-sm">
+                    <option value="">Estado: todos</option>
+                    {% for estado in ['Disponible','Ocupada','Mantenimiento','Reservada','Inactiva'] %}
+                    <option value="{{ estado }}" {% if filtro_estado == estado %}selected{% endif %}>{{ estado }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="zona" class="form-select form-select-sm">
+                    <option value="">Zona: todas</option>
+                    {% for zona in zonas %}
+                    <option value="{{ zona }}" {% if filtro_zona == zona %}selected{% endif %}>{{ zona }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="tipo" class="form-select form-select-sm">
+                    <option value="">Tipo: todos</option>
+                    {% for tipo in tipos %}
+                    <option value="{{ tipo }}" {% if filtro_tipo == tipo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-sm btn-secondary flex-grow-1">Filtrar</button>
+                    <a href="{{ url_for('listar_camas') }}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
                 </div>
             </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-success">
-                <div class="card-body text-center">
-                    <h5 class="card-title">{{ stats.disponibles }}</h5>
-                    <p class="card-text text-muted">Disponibles</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-danger">
-                <div class="card-body text-center">
-                    <h5 class="card-title">{{ stats.ocupadas }}</h5>
-                    <p class="card-text text-muted">Ocupadas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-warning">
-                <div class="card-body text-center">
-                    <h5 class="card-title">{{ stats.mantenimiento }}</h5>
-                    <p class="card-text text-muted">Mantenimiento</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-info">
-                <div class="card-body text-center">
-                    <h5 class="card-title">{{ stats.reservadas }}</h5>
-                    <p class="card-text text-muted">Reservadas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-2">
-            <div class="card border-dark">
-                <div class="card-body text-center">
-                    {% set porcentaje = ((stats.ocupadas / stats.total * 100) if stats.total > 0 else 0) %}
-                    <h5 class="card-title">{{ "%.1f"|format(porcentaje) }}%</h5>
-                    <p class="card-text text-muted">Ocupación</p>
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
-    {% endif %}
 
-    <!-- Filtros -->
-    <div class="card mb-4">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros</h5>
+    <!-- Tabla de camas - Minimalista -->
+    <div class="border rounded">
+        <div class="p-2 bg-light border-bottom">
+            <h6 class="fw-normal mb-0">Listado de Camas</h6>
         </div>
-        <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-3">
-                    <label for="estado" class="form-label">Estado</label>
-                    <select name="estado" id="estado" class="form-select">
-                        <option value="">Todos los estados</option>
-                        <option value="Disponible" {% if filtro_estado == 'Disponible' %}selected{% endif %}>Disponible</option>
-                        <option value="Ocupada" {% if filtro_estado == 'Ocupada' %}selected{% endif %}>Ocupada</option>
-                        <option value="Mantenimiento" {% if filtro_estado == 'Mantenimiento' %}selected{% endif %}>Mantenimiento</option>
-                        <option value="Reservada" {% if filtro_estado == 'Reservada' %}selected{% endif %}>Reservada</option>
-                        <option value="Inactiva" {% if filtro_estado == 'Inactiva' %}selected{% endif %}>Inactiva</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="zona" class="form-label">Zona</label>
-                    <select name="zona" id="zona" class="form-select">
-                        <option value="">Todas las zonas</option>
-                        {% for zona in zonas %}
-                        <option value="{{ zona }}" {% if filtro_zona == zona %}selected{% endif %}>{{ zona }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="tipo" class="form-label">Tipo</label>
-                    <select name="tipo" id="tipo" class="form-select">
-                        <option value="">Todos los tipos</option>
-                        {% for tipo in tipos %}
-                        <option value="{{ tipo }}" {% if filtro_tipo == tipo %}selected{% endif %}>{{ tipo }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <div class="btn-group w-100">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i> Filtrar
-                        </button>
-                        <a href="{{ url_for('listar_camas') }}" class="btn btn-secondary">
-                            <i class="fas fa-redo"></i> Limpiar
-                        </a>
+        
+        {% if camas %}
+        <div class="table-responsive">
+            <table class="table table-sm table-borderless mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th class="px-3 py-2">N°</th>
+                        <th class="px-3 py-2">Habitación</th>
+                        <th class="px-3 py-2">Zona</th>
+                        <th class="px-3 py-2">Tipo</th>
+                        <th class="px-3 py-2">Estado</th>
+                        <th class="px-3 py-2">Residente</th>
+                        <th class="px-3 py-2">Días</th>
+                        <th class="px-3 py-2">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cama in camas %}
+                    <tr class="border-bottom align-middle">
+                        <td class="px-3 py-2 fw-bold">{{ cama.numero }}</td>
+                        <td class="px-3 py-2">{{ cama.habitacion or '—' }}</td>
+                        <td class="px-3 py-2">{{ cama.zona or '—' }}</td>
+                        <td class="px-3 py-2">{{ cama.tipo }}</td>
+                        <td class="px-3 py-2">
+                            <span class="text-{% if cama.estado == 'Disponible' %}success{% elif cama.estado == 'Ocupada' %}danger{% elif cama.estado == 'Mantenimiento' %}warning{% else %}secondary{% endif %}">
+                                {{ cama.estado }}
+                            </span>
+                        </td>
+                        <td class="px-3 py-2">
+                            {% if cama.residente_actual %}
+                            <span title="{{ cama.residente_actual }}">{{ cama.residente_actual|truncate(15) }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-3 py-2">{{ cama.dias_ocupada or '—' }}</td>
+                        <td class="px-3 py-2">
+                            <div class="btn-group btn-group-md">
+                                <!-- Editar -->
+                                <a href="{{ url_for('editar_cama', cama_id=cama.id) }}" 
+                                   class="btn btn-lg btn-outline-secondary py-0 px-1"
+                                   title="Editar">
+                                    ✎
+                                </a>
+                                
+                                <!-- Cambiar estado (solo si no está ocupada) -->
+                                {% if cama.estado != 'Ocupada' %}
+                                <button type="button" 
+                                        class="btn btn-sm btn-outline-secondary py-0 px-1 btn-cambiar-estado"
+                                        data-cama-id="{{ cama.id }}"
+                                        data-cama-numero="{{ cama.numero }}"
+                                        title="Cambiar estado">
+                                    ↻
+                                </button>
+                                {% endif %}
+                                
+                                <!-- Liberar cama -->
+                                {% if cama.estado == 'Ocupada' and cama.asignacion_actual_id %}
+                                <button type="button"
+                                        class="btn btn-sm btn-outline-secondary py-0 px-1 btn-liberar-cama"
+                                        data-asignacion-id="{{ cama.asignacion_actual_id }}"
+                                        data-cama-numero="{{ cama.numero }}"
+                                        data-residente="{{ cama.residente_actual }}"
+                                        title="Liberar">
+                                    🚪
+                                </button>
+                                {% endif %}
+                                
+                                <!-- Asignar -->
+                                {% if cama.estado == 'Disponible' %}
+                                <a href="{{ url_for('asignar_cama', residente_id=0) }}?cama_id={{ cama.id }}"
+                                   class="btn btn-sm btn-outline-secondary py-0 px-1"
+                                   title="Asignar">
+                                    +
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Contador simple -->
+        <div class="p-2 small text-muted border-top">
+            Total: {{ camas|length }} camas | 
+            {% set ocupadas = camas|selectattr('estado', 'equalto', 'Ocupada')|list|length %}
+            {% set disponibles = camas|selectattr('estado', 'equalto', 'Disponible')|list|length %}
+            <span class="text-danger">{{ ocupadas }}</span> ocupadas, 
+            <span class="text-success">{{ disponibles }}</span> disponibles
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <p class="mb-2">No hay camas registradas</p>
+            <a href="{{ url_for('crear_cama') }}" class="btn btn-sm btn-outline-primary">
+                + Agregar primera cama
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Liberar Cama - Minimalista -->
+<div class="modal fade" id="modalLiberarCama" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content rounded-0 border">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h6 class="modal-title fw-normal">Liberar Cama</h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formLiberarCama">
+                <div class="modal-body pt-2">
+                    <p id="modal-liberar-info" class="small mb-3"></p>
+                    <div class="mb-2">
+                        <select name="motivo_liberacion" class="form-select form-select-sm" required>
+                            <option value="">Motivo...</option>
+                            <option value="Alta">Alta médica</option>
+                            <option value="Transferencia">Transferencia</option>
+                            <option value="Fallecimiento">Fallecimiento</option>
+                            <option value="Limpieza">Limpieza</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                            <option value="Otro">Otro</option>
+                        </select>
                     </div>
+                    <div class="mb-2">
+                        <textarea name="observaciones" class="form-control form-control-sm" 
+                                  rows="2" placeholder="Observaciones (opcional)"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Liberar</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <!-- Tabla de camas -->
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-bed"></i> Listado de Camas</h5>
-        </div>
-        <div class="card-body">
-            {% if camas %}
-            <div class="table-responsive">
-                <table class="table table-hover table-striped">
-                    <thead>
-                        <tr>
-                            <th>Número</th>
-                            <th>Habitación</th>
-                            <th>Piso</th>
-                            <th>Zona</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                            <th>Residente Actual</th>
-                            <th>Días Ocupada</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for cama in camas %}
-                        <tr>
-                            <td>
-                                <strong>{{ cama.numero }}</strong>
-                                {% if not cama.activo %}
-                                <span class="badge bg-dark">Inactiva</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ cama.habitacion or 'N/A' }}</td>
-                            <td>{{ cama.piso or 'N/A' }}</td>
-                            <td>
-                                <span class="badge bg-info">{{ cama.zona }}</span>
-                            </td>
-                            <td>{{ cama.tipo }}</td>
-                            <td>
-                                {% if cama.estado == 'Disponible' %}
-                                <span class="badge bg-success">{{ cama.estado }}</span>
-                                {% elif cama.estado == 'Ocupada' %}
-                                <span class="badge bg-danger">{{ cama.estado }}</span>
-                                {% elif cama.estado == 'Mantenimiento' %}
-                                <span class="badge bg-warning">{{ cama.estado }}</span>
-                                {% elif cama.estado == 'Reservada' %}
-                                <span class="badge bg-primary">{{ cama.estado }}</span>
-                                {% else %}
-                                <span class="badge bg-secondary">{{ cama.estado }}</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if cama.residente_actual %}
-                                {{ cama.residente_actual }}
-                                {% else %}
-                                <span class="text-muted">Vacante</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                {% if cama.dias_ocupada and cama.dias_ocupada > 0 %}
-                                {{ cama.dias_ocupada }} días
-                                {% else %}
-                                -
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="btn-group btn-group-sm">
-                                    <a href="{{ url_for('editar_cama', cama_id=cama.id) }}" 
-                                       class="btn btn-outline-primary" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    
-                                    {% if cama.estado != 'Ocupada' %}
-                                    <button type="button" 
-                                            class="btn btn-outline-warning btn-cambiar-estado"
-                                            data-cama-id="{{ cama.id }}"
-                                            data-cama-numero="{{ cama.numero }}"
-                                            title="Cambiar estado">
-                                        <i class="fas fa-exchange-alt"></i>
-                                    </button>
-                                    {% endif %}
-                                    
-                                    {% if cama.estado == 'Ocupada' and cama.residente_actual %}
-                                    <button type="button"
-                                            class="btn btn-outline-danger btn-liberar-cama"
-                                            data-asignacion-id="{{ cama.id }}"
-                                            data-cama-numero="{{ cama.numero }}"
-                                            data-residente="{{ cama.residente_actual }}"
-                                            title="Liberar cama">
-                                        <i class="fas fa-door-open"></i>
-                                    </button>
-                                    {% endif %}
-                                    
-                                    {% if cama.estado == 'Disponible' %}
-                                    <a href="{{ url_for('asignar_cama', residente_id=0) }}?cama_id={{ cama.id }}"
-                                       class="btn btn-outline-success" title="Asignar residente">
-                                        <i class="fas fa-user-plus"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-                <i class="fas fa-bed fa-3x text-muted mb-3"></i>
-                <h4>No hay camas registradas</h4>
-                <p class="text-muted">Comience agregando una nueva cama</p>
-                <a href="{{ url_for('crear_cama') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Agregar Cama
-                </a>
-            </div>
-            {% endif %}
-        </div>
-    </div>
 </div>
 
-<!-- Modal para cambiar estado -->
+<!-- Modal Cambiar Estado - Minimalista -->
 <div class="modal fade" id="modalCambiarEstado" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Cambiar Estado de Cama</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content rounded-0 border">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h6 class="modal-title fw-normal">Cambiar Estado</h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
             </div>
             <form id="formCambiarEstado">
-                <div class="modal-body">
-                    <p id="modal-cama-info"></p>
-                    <div class="mb-3">
-                        <label for="estadoSelect" class="form-label">Nuevo Estado</label>
-                        <select name="estado" id="estadoSelect" class="form-select" required>
-                            <option value="">Seleccionar estado...</option>
+                <div class="modal-body pt-2">
+                    <p id="modal-cama-info" class="small mb-3"></p>
+                    <div class="mb-2">
+                        <select name="estado" class="form-select form-select-sm" required>
+                            <option value="">Seleccionar...</option>
                             <option value="Disponible">Disponible</option>
                             <option value="Mantenimiento">Mantenimiento</option>
                             <option value="Reservada">Reservada</option>
                             <option value="Inactiva">Inactiva</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="motivo" class="form-label">Motivo</label>
-                        <textarea name="motivo" id="motivo" class="form-control" rows="2" 
-                                  placeholder="Ej: Limpieza profunda, reparación, reserva programada..."></textarea>
+                    <div>
+                        <textarea name="motivo" class="form-control form-control-sm" 
+                                  rows="2" placeholder="Motivo (opcional)"></textarea>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Cambiar Estado</button>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-sm btn-outline-primary">Cambiar</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal para liberar cama -->
-<div class="modal fade" id="modalLiberarCama" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Liberar Cama</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form id="formLiberarCama">
-                <div class="modal-body">
-                    <p id="modal-liberar-info"></p>
-                    <div class="mb-3">
-                        <label for="motivo_liberacion" class="form-label">Motivo de Liberación</label>
-                        <select name="motivo_liberacion" id="motivo_liberacion" class="form-select" required>
-                            <option value="">Seleccionar motivo...</option>
-                            <option value="Alta médica">Alta médica</option>
-                            <option value="Transferencia">Transferencia</option>
-                            <option value="Fallecimiento">Fallecimiento</option>
-                            <option value="Limpieza profunda">Limpieza profunda</option>
-                            <option value="Mantenimiento requerido">Mantenimiento requerido</option>
-                            <option value="Otro">Otro</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="observaciones_liberacion" class="form-label">Observaciones</label>
-                        <textarea name="observaciones" id="observaciones_liberacion" 
-                                  class="form-control" rows="3" 
-                                  placeholder="Detalles adicionales..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">Liberar Cama</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Cambiar estado de cama
-    document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const camaId = this.dataset.camaId;
-            const camaNumero = this.dataset.camaNumero;
-            
-            document.getElementById('modal-cama-info').innerHTML = 
-                `¿Cambiar estado de la cama <strong>${camaNumero}</strong>?`;
-            
-            const form = document.getElementById('formCambiarEstado');
-            form.dataset.camaId = camaId;
-            
-            const modal = new bootstrap.Modal(document.getElementById('modalCambiarEstado'));
-            modal.show();
-        });
-    });
-    
     // Liberar cama
     document.querySelectorAll('.btn-liberar-cama').forEach(btn => {
         btn.addEventListener('click', function() {
+            const asignacionId = this.dataset.asignacionId;
             const camaNumero = this.dataset.camaNumero;
             const residente = this.dataset.residente;
-            const asignacionId = this.dataset.asignacionId;
+            
+            if (!asignacionId || asignacionId === 'None') {
+                alert('Error: Sin asignación activa');
+                return;
+            }
             
             document.getElementById('modal-liberar-info').innerHTML = 
-                `¿Liberar cama <strong>${camaNumero}</strong> ocupada por <strong>${residente}</strong>?`;
+                `Cama <b>${camaNumero}</b> - ${residente}`;
             
             const form = document.getElementById('formLiberarCama');
             form.dataset.asignacionId = asignacionId;
+            form.reset();
             
-            const modal = new bootstrap.Modal(document.getElementById('modalLiberarCama'));
-            modal.show();
+            new bootstrap.Modal(document.getElementById('modalLiberarCama')).show();
         });
     });
-    
-    // Enviar formulario cambiar estado
-    document.getElementById('formCambiarEstado').addEventListener('submit', async function(e) {
+
+    // Enviar liberar cama
+    document.getElementById('formLiberarCama')?.addEventListener('submit', async function(e) {
         e.preventDefault();
-        
-        const camaId = this.dataset.camaId;
-        const formData = new FormData(this);
-        
-        try {
-            const response = await fetch(`/camas/${camaId}/cambiar-estado`, {
-                method: 'POST',
-                body: formData
-            });
-            
-            const data = await response.json();
-            
-            if (data.success) {
-                alert('Estado cambiado exitosamente');
-                location.reload();
-            } else {
-                alert('Error: ' + data.error);
-            }
-        } catch (error) {
-            alert('Error al cambiar estado: ' + error.message);
-        }
-    });
-    
-    // Enviar formulario liberar cama
-    document.getElementById('formLiberarCama').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
         const asignacionId = this.dataset.asignacionId;
         const formData = new FormData(this);
+        
+        if (!formData.get('motivo_liberacion')) {
+            alert('Seleccione un motivo');
+            return;
+        }
         
         try {
             const response = await fetch(`/camas/liberar/${asignacionId}`, {
                 method: 'POST',
                 body: formData
             });
-            
             const data = await response.json();
             
             if (data.success) {
-                alert(data.message);
+                bootstrap.Modal.getInstance(document.getElementById('modalLiberarCama')).hide();
                 location.reload();
             } else {
                 alert('Error: ' + data.error);
             }
         } catch (error) {
-            alert('Error al liberar cama: ' + error.message);
+            alert('Error al liberar cama');
+        }
+    });
+
+    // Cambiar estado
+    document.querySelectorAll('.btn-cambiar-estado').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.getElementById('modal-cama-info').innerHTML = 
+                `Cama <b>#${this.dataset.camaNumero}</b>`;
+            
+            const form = document.getElementById('formCambiarEstado');
+            form.dataset.camaId = this.dataset.camaId;
+            form.reset();
+            
+            new bootstrap.Modal(document.getElementById('modalCambiarEstado')).show();
+        });
+    });
+
+    // Enviar cambiar estado
+    document.getElementById('formCambiarEstado')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        if (!formData.get('estado')) {
+            alert('Seleccione un estado');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/camas/${this.dataset.camaId}/cambiar-estado`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('modalCambiarEstado')).hide();
+                location.reload();
+            } else {
+                alert('Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('Error al cambiar estado');
         }
     });
 });
 </script>
+
+<style>
+/* Estilo académico - minimalista, funcional, sin colores distractores */
+body {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+}
+.container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.border {
+    border: 1px solid #dee2e6 !important;
+}
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+.table {
+    font-size: 0.9rem;
+}
+.table th {
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+}
+.table td {
+    border-bottom: 1px solid #f1f3f5;
+}
+.btn-group-xs .btn {
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+.btn-outline-secondary {
+    border-color: #ced4da;
+}
+.modal-content {
+    border-radius: 0;
+    border: 1px solid #dee2e6;
+}
+.form-control, .form-select {
+    border-radius: 0;
+    border: 1px solid #ced4da;
+    font-size: 0.9rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #495057;
+    box-shadow: none;
+}
+h2, h4, h6 {
+    font-weight: 400;
+}
+.border-bottom {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+</style>
+
 {% endblock %}

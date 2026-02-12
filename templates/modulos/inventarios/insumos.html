@@ -1,0 +1,210 @@
+{% extends "modulos/inventarios/base_inventario.html" %}
+
+{% block title %}Insumos - Inventarios{% endblock %}
+{% block module_title %}<i class="fas fa-box me-2"></i>Gestión de Insumos{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0">Listado de Insumos</h5>
+    <a href="{{ url_for('nuevo_insumo') }}" class="btn btn-primary">
+        <i class="fas fa-plus-circle me-1"></i> Nuevo Insumo
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" name="q" class="form-control" 
+                           placeholder="Buscar por código o nombre..." 
+                           value="{{ busqueda or '' }}">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <select name="categoria" class="form-select">
+                    <option value="">Todas las categorías</option>
+                    {% for cat in categorias %}
+                    <option value="{{ cat.id }}" {% if filtro_categoria|string == cat.id|string %}selected{% endif %}>
+                        {{ cat.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-1"></i> Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Listado de insumos -->
+<div class="card">
+    <div class="card-body p-0">
+        {% if insumos %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Categoría</th>
+                        <th>Proveedor</th>
+                        <th>Stock</th>
+                        <th>Stock Mínimo</th>
+                        <th>Precio Compra</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for insumo in insumos %}
+                    <tr>
+                        <td><span class="badge bg-secondary">{{ insumo.codigo }}</span></td>
+                        <td><strong>{{ insumo.nombre }}</strong></td>
+                        <td>{{ insumo.categoria_nombre or '-' }}</td>
+                        <td>{{ insumo.proveedor_nombre or '-' }}</td>
+                        <td>
+                            <span class="badge {% if insumo.stock_actual <= insumo.stock_minimo %}bg-danger{% else %}bg-success{% endif %} stock-badge">
+                                {{ insumo.stock_actual }} {{ insumo.unidad_medida or 'unid' }}
+                            </span>
+                        </td>
+                        <td>{{ insumo.stock_minimo }}</td>
+                        <td>₡{{ "{:,.0f}".format(insumo.precio_compra) if insumo.precio_compra else '-' }}</td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('ver_movimientos', insumo_id=insumo.id) }}" 
+                                   class="btn btn-outline-info" title="Ver movimientos">
+                                    <i class="fas fa-history"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-warning" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalAjustarStock{{ insumo.id }}"
+                                        title="Ajustar stock">
+                                    <i class="fas fa-balance-scale"></i>
+                                </button>
+                                <a href="{{ url_for('editar_insumo', insumo_id=insumo.id) }}" 
+                                   class="btn btn-outline-primary" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-danger" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalEliminar{{ insumo.id }}"
+                                        title="Desactivar">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+            <p class="text-muted mb-0">No hay insumos registrados</p>
+            <p class="text-muted small">Agregue un nuevo insumo para comenzar</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modales de ajuste de stock -->
+{% for insumo in insumos %}
+<div class="modal fade" id="modalAjustarStock{{ insumo.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-balance-scale me-2"></i> Ajustar Stock - {{ insumo.nombre }}
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('ajustar_stock', insumo_id=insumo.id) }}" method="post">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Stock Actual</label>
+                        <input type="text" class="form-control" value="{{ insumo.stock_actual }}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Ajuste</label>
+                        <select name="tipo" class="form-select" required>
+                            <option value="Entrada">➕ Entrada (aumentar stock)</option>
+                            <option value="Salida">➖ Salida (disminuir stock)</option>
+                            <option value="Ajuste">🔄 Ajuste manual</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad</label>
+                        <input type="number" name="cantidad" class="form-control" 
+                               placeholder="Ingrese cantidad" required>
+                        <div class="form-text">Usar números positivos. Para salidas, el sistema restará automáticamente.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Observación</label>
+                        <textarea name="observacion" class="form-control" rows="2" 
+                                  placeholder="Motivo del ajuste..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-check me-1"></i> Confirmar Ajuste
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal eliminar (desactivar) -->
+<div class="modal fade" id="modalEliminar{{ insumo.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Confirmar Desactivación
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea desactivar el insumo <strong>{{ insumo.nombre }}</strong>?</p>
+                <p class="text-muted small">El insumo no aparecerá en listados pero se mantendrá en el historial.</p>
+            </div>
+            <div class="modal-footer">
+                <form action="{{ url_for('eliminar_insumo', insumo_id=insumo.id) }}" method="post">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt me-1"></i> Desactivar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Convertir automáticamente valores negativos a positivos para salidas
+    document.querySelectorAll('[name="tipo"]').forEach(select => {
+        select.addEventListener('change', function() {
+            const cantidadInput = this.closest('form').querySelector('[name="cantidad"]');
+            if (this.value === 'Salida') {
+                cantidadInput.placeholder = 'Ingrese cantidad a retirar';
+            } else {
+                cantidadInput.placeholder = 'Ingrese cantidad';
+            }
+        });
+    });
+</script>
+{% endblock %}

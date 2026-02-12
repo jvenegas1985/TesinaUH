@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Inventarios - Centro Geriátrico{% endblock %}</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .sidebar {
+            min-height: 100vh;
+            background-color: #343a40;
+            color: white;
+        }
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.8rem 1rem;
+            margin-bottom: 0.2rem;
+        }
+        .sidebar .nav-link:hover {
+            color: white;
+            background-color: rgba(255,255,255,0.1);
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .content {
+            padding: 20px;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
+        }
+        .card-header {
+            background-color: #fff;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        .badge-stock {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.6rem;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 p-0 sidebar">
+                <div class="p-3">
+                    <h5 class="text-white mb-4">
+                        <i class="fas fa-boxes me-2"></i>Inventarios
+                    </h5>
+                    <nav class="nav flex-column">
+                        <a class="nav-link {% if request.endpoint == 'listar_insumos' %}active{% endif %}" 
+                           href="{{ url_for('listar_insumos') }}">
+                            <i class="fas fa-box me-2"></i> Insumos
+                        </a>
+                        <a class="nav-link {% if request.endpoint == 'listar_proveedores' %}active{% endif %}" 
+                           href="{{ url_for('listar_proveedores') }}">
+                            <i class="fas fa-truck me-2"></i> Proveedores
+                        </a>
+                        <a class="nav-link {% if request.endpoint == 'listar_ordenes_compra' %}active{% endif %}" 
+                           href="{{ url_for('listar_ordenes_compra') }}">
+                            <i class="fas fa-shopping-cart me-2"></i> Órdenes de Compra
+                        </a>
+                        <hr class="bg-secondary">
+                        <a class="nav-link" href="{{ url_for('index_admin') }}">
+                            <i class="fas fa-home me-2"></i> Panel Principal
+                        </a>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Contenido principal -->
+            <div class="col-md-10 p-0">
+                <!-- Navbar superior -->
+                <nav class="navbar navbar-expand navbar-light bg-white shadow-sm px-4">
+                    <div class="container-fluid">
+                        <span class="navbar-brand mb-0 h6">
+                            {% block module_title %}Inventarios{% endblock %}
+                        </span>
+                        <div class="d-flex align-items-center">
+                            <span class="me-3">
+                                <i class="fas fa-user-circle me-1"></i>
+                                {{ current_user.nombre }} ({{ current_user.rol }})
+                            </span>
+                            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">
+                                <i class="fas fa-sign-out-alt me-1"></i> Salir
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+                
+                <!-- Mensajes Flash -->
+                <div class="container-fluid px-4 mt-3">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                <!-- Contenido de la página -->
+                <div class="container-fluid px-4 py-3">
+                    {% block content %}{% endblock %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto-cerrar alertas
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 5000);
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

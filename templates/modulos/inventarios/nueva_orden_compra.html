@@ -1,0 +1,46 @@
+{% extends "modulos/inventarios/base_inventario.html" %}
+
+{% block title %}Nueva Orden de Compra - Inventarios{% endblock %}
+{% block module_title %}<i class="fas fa-plus-circle me-2"></i>Nueva Orden de Compra{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Crear Orden de Compra</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('nueva_orden_compra') }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Proveedor *</label>
+                            <select name="proveedor_id" class="form-select" required>
+                                <option value="">-- Seleccione proveedor --</option>
+                                {% for prov in proveedores %}
+                                <option value="{{ prov.id }}">{{ prov.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha de Orden</label>
+                            <input type="date" name="fecha" class="form-control" value="{{ hoy }}">
+                        </div>
+                        <div class="col-12 mt-4">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('listar_ordenes_compra') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Crear Orden
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -217,34 +217,31 @@
         {% endif %}
 
         <!-- INVENTARIOS -->
-        {% if current_user.rol in ['bodega', 'farmacia', 'administrador'] %}
-        <div class="col-md-3">
-            <div class="card card-menu text-center">
-                <div class="card-body">
-                    <i class="fas fa-boxes icono text-danger"></i>
-                    <h6 class="mb-3">Inventarios</h6>
-                    <div class="d-grid gap-2 mb-3">
-                        <a href="/inventario" class="btn btn-outline-danger btn-modulo">
-                            <i class="fas fa-box me-1"></i> Insumos
-                        </a>
-                        <a href="/ordenes-compra" class="btn btn-outline-danger btn-modulo">
-                            <i class="fas fa-shopping-cart me-1"></i> Órdenes
-                        </a>
-                        <a href="/proveedores" class="btn btn-outline-danger btn-modulo">
-                            <i class="fas fa-truck me-1"></i> Proveedores
-                        </a>
-                    </div>
-                    <p class="descripcion-modulo mb-0">
-                        Control de inventario y proveedores
-                    </p>
-                </div>
+        <!-- INVENTARIOS -->
+{% if current_user.rol in ['bodega', 'farmacia', 'administrador'] %}
+<div class="col-md-3">
+    <div class="card card-menu text-center">
+        <div class="card-body">
+            <i class="fas fa-boxes icono text-danger"></i>
+            <h6 class="mb-3">Inventarios</h6>
+            <div class="d-grid gap-2 mb-3">
+                <a href="{{ url_for('listar_insumos') }}" class="btn btn-outline-danger btn-modulo">
+                    <i class="fas fa-box me-1"></i> Insumos
+                </a>
+                <a href="{{ url_for('listar_ordenes_compra') }}" class="btn btn-outline-danger btn-modulo">
+                    <i class="fas fa-shopping-cart me-1"></i> Órdenes
+                </a>
+                <a href="{{ url_for('listar_proveedores') }}" class="btn btn-outline-danger btn-modulo">
+                    <i class="fas fa-truck me-1"></i> Proveedores
+                </a>
             </div>
+            <p class="descripcion-modulo mb-0">
+                Control de inventario y proveedores
+            </p>
         </div>
-        {% endif %}
-
     </div>
 </div>
-
+{% endif %}
 <!-- MODAL AVISO ACADÉMICO -->
 {% if session.get('mostrar_modal') %}
 <div class="modal fade" id="modalAviso" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -302,7 +299,7 @@
                 const bsAlert = new bootstrap.Alert(alert);
                 bsAlert.close();
             });
-        }, 5000);
+        }, 15000);
     });
 
     // Mostrar modal solo una vez

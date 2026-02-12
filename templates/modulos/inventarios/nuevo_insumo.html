@@ -1,0 +1,90 @@
+{% extends "modulos/inventarios/base_inventario.html" %}
+
+{% block title %}Nuevo Insumo - Inventarios{% endblock %}
+{% block module_title %}<i class="fas fa-plus-circle me-2"></i>Nuevo Insumo{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Formulario de Registro de Insumo</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('nuevo_insumo') }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Código *</label>
+                            <input type="text" name="codigo" class="form-control" 
+                                   placeholder="Ej: MED-001" required>
+                            <div class="form-text">Código único para identificar el insumo</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" name="nombre" class="form-control" 
+                                   placeholder="Nombre del insumo" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="2" 
+                                      placeholder="Descripción detallada..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Categoría</label>
+                            <select name="categoria_id" class="form-select">
+                                <option value="">-- Seleccione categoría --</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}">{{ cat.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Proveedor</label>
+                            <select name="proveedor_id" class="form-select">
+                                <option value="">-- Seleccione proveedor --</option>
+                                {% for prov in proveedores %}
+                                <option value="{{ prov.id }}">{{ prov.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Unidad de Medida</label>
+                            <input type="text" name="unidad_medida" class="form-control" 
+                                   placeholder="Ej: Unidad, Caja, Litro">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stock Inicial</label>
+                            <input type="number" name="stock_actual" class="form-control" 
+                                   value="0" min="0">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Stock Mínimo</label>
+                            <input type="number" name="stock_minimo" class="form-control" 
+                                   value="5" min="0">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Precio de Compra</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₡</span>
+                                <input type="number" name="precio_compra" class="form-control" 
+                                       step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="col-12 mt-4">
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <a href="{{ url_for('listar_insumos') }}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i> Cancelar
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> Guardar Insumo
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
