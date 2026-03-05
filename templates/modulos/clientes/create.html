@@ -1,199 +1,448 @@
 {% include '/modulos/clientes/admin_header.html' %}
-<h4>Agregar Nuevo Registro</h4>
-{% if mensaje == 'faltan_campos' %}
-  <div class="alert alert-danger text-center">
-    Debes seleccionar todos los campos de “Género”, “Estado Civil”, “Movilidad” y “Estado Mental”.
-  </div>
-{% elif mensaje == 'existe' %}
-  <div class="alert alert-warning text-center">
-    Esta cédula ya está registrada en el sistema.
-  </div>
-{% elif mensaje == 'error_insercion' %}
-  <div class="alert alert-danger text-center">
-    Ocurrió un error al guardar: {{ error_detalle }}
-  </div>
-{% elif mensaje == 'insertado' %}
-  <div class="alert alert-success text-center">
-    Residente agregado correctamente.
-  </div>
-{% endif %}
 
-<form action="/modulos/clientes/create/guardar" method="POST" id="guardar">
-  <div class="row g-4">
-
-    <!-- Columna 1 -->
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card shadow-sm rounded-4">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="bi bi-person"></i> Información Personal</h5>
-
-          <div class="mb-3">
-            <label for="nombre" class="form-label">Nombre</label>
-            <input type="text" class="form-control" name="nombre" id="nombre" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="apellido1" class="form-label">Primer Apellido</label>
-            <input type="text" class="form-control" name="apellido1" id="apellido1" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="apellido2" class="form-label">Segundo Apellido</label>
-            <input type="text" class="form-control" name="apellido2" id="apellido2" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="cedula" class="form-label">Cédula</label>
-            <input type="text" class="form-control" name="cedula" id="cedula" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento</label>
-            <input type="date" class="form-control" name="fecha_nacimiento" id="fecha_nacimiento" required>
-          </div>
-
-          <div class="mb-3">
-  <label for="genero" class="form-label">Género</label>
-  <select class="form-select" name="genero" id="genero" required>
-    <option value="" disabled {% if not genero %}selected{% endif %}>Seleccione</option>
-    <option value="Masculino" {% if genero == 'Masculino' %}selected{% endif %}>Masculino</option>
-    <option value="Femenino" {% if genero == 'Femenino' %}selected{% endif %}>Femenino</option>
-    <option value="Otro" {% if genero == 'Otro' %}selected{% endif %}>Otro</option>
-  </select>
-</div>
-
-          <div class="mb-3">
-  <label for="estado_civil" class="form-label">Estado Civil</label>
-  <select class="form-select" name="estado_civil" id="estado_civil" required>
-    <option value="" disabled {% if not estado_civil %}selected{% endif %}>Seleccione</option>
-    <option value="Soltero" {% if estado_civil == 'Soltero' %}selected{% endif %}>Soltero</option>
-    <option value="Casado" {% if estado_civil == 'Casado' %}selected{% endif %}>Casado</option>
-    <option value="Viudo" {% if estado_civil == 'Viudo' %}selected{% endif %}>Viudo</option>
-    <option value="Divorciado" {% if estado_civil == 'Divorciado' %}selected{% endif %}>Divorciado</option>
-  </select>
-</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Columna 2 -->
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card shadow-sm rounded-4">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="bi bi-house-door"></i> Contacto y Dirección</h5>
-
-          <div class="mb-3">
-            <label for="pais_nacimiento" class="form-label">País de Nacimiento</label>
-            <input type="text" class="form-control" name="pais_nacimiento" id="pais_nacimiento" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="direccion" class="form-label">Dirección</label>
-            <textarea class="form-control" name="direccion" id="direccion" rows="2" required></textarea>
-          </div>
-
-          <div class="mb-3">
-            <label for="telefono" class="form-label">Teléfono</label>
-            <input type="tel" class="form-control" name="telefono" id="telefono" required>
-            <small class="form-text text-muted">Sin guiones ni espacios.</small>
-          </div>
-
-          <div class="mb-3">
-            <label for="nombre_contacto_emergencia" class="form-label">Nombre Contacto Emergencia</label>
-            <input type="text" class="form-control" name="nombre_contacto_emergencia" id="nombre_contacto_emergencia" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="telefono_emergencia" class="form-label">Teléfono Emergencia</label>
-            <input type="text" class="form-control" name="telefono_emergencia" id="telefono_emergencia" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="parentesco" class="form-label">Parentesco</label>
-            <input type="text" class="form-control" name="contacto_emergencia_parentesco" id="parentesco" required>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Columna 3 -->
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card shadow-sm rounded-4">
-        <div class="card-body">
-          <h5 class="card-title mb-3"><i class="bi bi-clipboard-heart"></i> Salud</h5>
-
-          <div class="mb-3">
-  <label for="movilidad" class="form-label">Movilidad</label>
-  <select class="form-select" name="movilidad" id="movilidad" required>
-    <option value="" disabled {% if not movilidad %}selected{% endif %}>Seleccione</option>
-    <option value="Independiente" {% if movilidad == 'Independiente' %}selected{% endif %}>Independiente</option>
-    <option value="Con ayuda" {% if movilidad == 'Con ayuda' %}selected{% endif %}>Con Ayuda</option>
-    <option value="Dependiente" {% if movilidad == 'Dependiente' %}selected{% endif %}>Dependiente</option>
-  </select>
-</div>
-
-          <div class="mb-4">
-  <label for="estado_mental" class="form-label">Estado Mental</label>
-  <select class="form-select" name="estado_mental" id="estado_mental" required>
-    <option value="" disabled {% if not estado_mental %}selected{% endif %}>Seleccione</option>
-    <option value="Lúcido" {% if estado_mental == 'Lúcido' %}selected{% endif %}>Lúcido</option>
-    <option value="Desorientado" {% if estado_mental == 'Desorientado' %}selected{% endif %}>Desorientado</option>
-    <option value="Demencia" {% if estado_mental == 'Demencia' %}selected{% endif %}>Demencia</option>
-  </select>
-</div>
-          <div class="d-grid mt-4">
-            <button type="submit" class="btn btn-primary">
-              <i class="bi bi-save"></i> Guardar Registro
+<div class="container-fluid py-3">
+    <!-- Header con botón de ayuda -->
+    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h2 class="h4 fw-normal mb-0">Agregar Nuevo Residente</h2>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#panelAyuda" aria-expanded="false">
+                <i class="bi bi-question-circle me-1"></i> Ayuda
             </button>
-          </div>
+            <a href="{{ url_for('index_residentes') }}" class="btn btn-sm btn-outline-secondary">
+                ← Volver
+            </a>
         </div>
-      </div>
     </div>
 
-  </div>
-</form>
-
-<br />
-<br />
-
-<div class="card-footer text-muted"></div>
-
-<!-- Modal -->
-<div class="modal" id="resultadoModal" tabindex="-1" aria-labelledby="resultadoModalLabel"
-  data-bs-backdrop="static" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="resultadoModalLabel">Resultado</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        {% if mensaje == 'existe' %}
-        Esta cédula ya está registrada en el sistema. Por favor verifique los datos
-        {% elif mensaje == 'insertado' %}
-        Registro de Residente Agregado Correctamente.
-        {% elif mensaje == 'no_existe' %}
-        Registro de Residente editado Correctamente
-        {% endif %}
-      </div>
-      <div class="modal-footer">
-        <a href="{{ url_for('index_residentes') }}" class="btn btn-success" id="closeModalAndRedirect">Cerrar</a>
-
-        <script>
-          document.getElementById('closeModalAndRedirect').addEventListener('click', function() {
-            // Cerrar el modal manualmente
-            var myModal = new bootstrap.Modal(document.getElementById('resultadoModal'));
-            myModal.hide();
-
-            // Redirigir después de cerrar el modal
-            setTimeout(function() {
-              window.location.href = '{{ url_for("index_residentes") }}';
-            }, 100);
-          });
-        </script>
-      </div>
+    <!-- Panel de ayuda colapsable -->
+    <div class="collapse mb-3" id="panelAyuda">
+        <div class="border p-3 bg-light">
+            <div class="d-flex">
+                <div class="me-3">
+                    <i class="bi bi-info-circle-fill text-secondary fs-5"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="fw-normal mb-2">📋 Instrucciones para el registro de residentes</h6>
+                    <div class="row g-3 small">
+                        <div class="col-md-4">
+                            <span class="badge bg-light text-dark border rounded-0 me-1">1</span>
+                            <strong>Información Personal</strong>
+                            <p class="text-muted mb-0 mt-1">Datos básicos de identificación. La cédula es única y no podrá modificarse después.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="badge bg-light text-dark border rounded-0 me-1">2</span>
+                            <strong>Contacto y Dirección</strong>
+                            <p class="text-muted mb-0 mt-1">Teléfonos a 8 dígitos. El contacto de emergencia debe ser una persona responsable.</p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="badge bg-light text-dark border rounded-0 me-1">3</span>
+                            <strong>Salud</strong>
+                            <p class="text-muted mb-0 mt-1">Evalúe correctamente la movilidad y estado mental del residente.</p>
+                        </div>
+                    </div>
+                    <div class="border-top mt-2 pt-2">
+                        <p class="small text-muted mb-0">
+                            <i class="bi bi-exclamation-triangle me-1"></i> 
+                            <span class="text-danger">*</span> Todos los campos son obligatorios. Verifique la información antes de guardar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+
+    <!-- Mensajes de alerta minimalistas -->
+    {% if mensaje == 'faltan_campos' %}
+    <div class="alert alert-warning alert-sm border-0 bg-light text-dark small py-2 mb-3 d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle me-2 fs-6"></i> Debes seleccionar todos los campos de "Género", "Estado Civil", "Movilidad" y "Estado Mental".
+    </div>
+    {% elif mensaje == 'existe' %}
+    <div class="alert alert-warning alert-sm border-0 bg-light text-dark small py-2 mb-3 d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle me-2 fs-6"></i> Esta cédula ya está registrada en el sistema.
+    </div>
+    {% elif mensaje == 'error_insercion' %}
+    <div class="alert alert-warning alert-sm border-0 bg-light text-dark small py-2 mb-3 d-flex align-items-center">
+        <i class="bi bi-exclamation-triangle me-2 fs-6"></i> Ocurrió un error al guardar: {{ error_detalle }}
+    </div>
+    {% elif mensaje == 'insertado' %}
+    <div class="alert alert-success alert-sm border-0 bg-light text-dark small py-2 mb-3 d-flex align-items-center">
+        <i class="bi bi-check-circle me-2 fs-6"></i> Residente agregado correctamente.
+    </div>
+    {% endif %}
+
+    <!-- Formulario minimalista con tooltips -->
+    <form action="/modulos/clientes/create/guardar" method="POST" id="guardar">
+        <div class="row g-3">
+            <!-- Columna 1: Información Personal -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="border rounded">
+                    <div class="p-2 bg-light border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="fw-normal mb-0"><i class="bi bi-person me-2"></i>Información Personal</h6>
+                        <span class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" 
+                              title="Datos básicos de identificación del residente. La cédula será única en el sistema.">
+                            <i class="bi bi-question-circle small"></i>
+                        </span>
+                    </div>
+                    <div class="p-3">
+                        <div class="mb-2">
+                            <label for="nombre" class="form-label small mb-1">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="nombre" id="nombre" required 
+                                   placeholder="Ej: Juan Carlos">
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i>Nombre completo sin abreviaturas
+                            </small>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="apellido1" class="form-label small mb-1">Primer Apellido <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="apellido1" id="apellido1" required 
+                                   placeholder="Ej: Pérez">
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="apellido2" class="form-label small mb-1">Segundo Apellido <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="apellido2" id="apellido2" required 
+                                   placeholder="Ej: González">
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="cedula" class="form-label small mb-1">Cédula <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="cedula" id="cedula" required 
+                                   placeholder="Ej: 123456789">
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i>Única e irrepetible. No se puede modificar después.
+                            </small>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="fecha_nacimiento" class="form-label small mb-1">Fecha de Nacimiento <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control form-control-sm" name="fecha_nacimiento" id="fecha_nacimiento" required>
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i>Formato: DD/MM/AAAA
+                            </small>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="genero" class="form-label small mb-1">Género <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm" name="genero" id="genero" required>
+                                <option value="" disabled {% if not genero %}selected{% endif %}>Seleccione una opción</option>
+                                <option value="Masculino" {% if genero == 'Masculino' %}selected{% endif %}>Masculino</option>
+                                <option value="Femenino" {% if genero == 'Femenino' %}selected{% endif %}>Femenino</option>
+                                <option value="Otro" {% if genero == 'Otro' %}selected{% endif %}>Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-0">
+                            <label for="estado_civil" class="form-label small mb-1">Estado Civil <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm" name="estado_civil" id="estado_civil" required>
+                                <option value="" disabled {% if not estado_civil %}selected{% endif %}>Seleccione una opción</option>
+                                <option value="Soltero" {% if estado_civil == 'Soltero' %}selected{% endif %}>Soltero/a</option>
+                                <option value="Casado" {% if estado_civil == 'Casado' %}selected{% endif %}>Casado/a</option>
+                                <option value="Viudo" {% if estado_civil == 'Viudo' %}selected{% endif %}>Viudo/a</option>
+                                <option value="Divorciado" {% if estado_civil == 'Divorciado' %}selected{% endif %}>Divorciado/a</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna 2: Contacto y Dirección -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="border rounded">
+                    <div class="p-2 bg-light border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="fw-normal mb-0"><i class="bi bi-house-door me-2"></i>Contacto y Dirección</h6>
+                        <span class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" 
+                              title="Información de contacto y persona de emergencia. Todos los teléfonos a 8 dígitos.">
+                            <i class="bi bi-question-circle small"></i>
+                        </span>
+                    </div>
+                    <div class="p-3">
+                        <div class="mb-2">
+                            <label for="pais_nacimiento" class="form-label small mb-1">País de Nacimiento <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="pais_nacimiento" id="pais_nacimiento" required 
+                                   placeholder="Ej: Costa Rica">
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="direccion" class="form-label small mb-1">Dirección <span class="text-danger">*</span></label>
+                            <textarea class="form-control form-control-sm" name="direccion" id="direccion" rows="2" required 
+                                      placeholder="Ej: San José, Curridabat, 200m este de la iglesia"></textarea>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="telefono" class="form-label small mb-1">Teléfono <span class="text-danger">*</span></label>
+                            <input type="tel" class="form-control form-control-sm" name="telefono" id="telefono" required 
+                                   placeholder="Ej: 88888888">
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i>8 dígitos, sin guiones ni espacios
+                            </small>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="nombre_contacto_emergencia" class="form-label small mb-1">Contacto de Emergencia <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="nombre_contacto_emergencia" id="nombre_contacto_emergencia" required 
+                                   placeholder="Ej: María Pérez">
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i>Nombre completo de la persona a contactar
+                            </small>
+                        </div>
+
+                        <div class="mb-2">
+                            <label for="telefono_emergencia" class="form-label small mb-1">Teléfono de Emergencia <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="telefono_emergencia" id="telefono_emergencia" required 
+                                   placeholder="Ej: 88888888">
+                        </div>
+
+                        <div class="mb-0">
+                            <label for="parentesco" class="form-label small mb-1">Parentesco <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-sm" name="contacto_emergencia_parentesco" id="parentesco" required 
+                                   placeholder="Ej: Hermana, Hijo, Esposa">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna 3: Salud y Acción -->
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="border rounded">
+                    <div class="p-2 bg-light border-bottom d-flex justify-content-between align-items-center">
+                        <h6 class="fw-normal mb-0"><i class="bi bi-clipboard-heart me-2"></i>Salud</h6>
+                        <span class="text-secondary" data-bs-toggle="tooltip" data-bs-placement="top" 
+                              title="Condiciones de movilidad y estado mental del residente. Seleccione según evaluación.">
+                            <i class="bi bi-question-circle small"></i>
+                        </span>
+                    </div>
+                    <div class="p-3">
+                        <div class="mb-2">
+                            <label for="movilidad" class="form-label small mb-1">Movilidad <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm" name="movilidad" id="movilidad" required>
+                                <option value="" disabled {% if not movilidad %}selected{% endif %}>Seleccione una opción</option>
+                                <option value="Independiente" {% if movilidad == 'Independiente' %}selected{% endif %}>Independiente - Puede moverse sin ayuda</option>
+                                <option value="Con ayuda" {% if movilidad == 'Con ayuda' %}selected{% endif %}>Con ayuda - Requiere asistencia parcial</option>
+                                <option value="Dependiente" {% if movilidad == 'Dependiente' %}selected{% endif %}>Dependiente - Requiere asistencia total</option>
+                            </select>
+                            <small class="form-text text-muted d-block mt-1">
+                                <i class="bi bi-info-circle me-1"></i>Seleccione según el nivel de autonomía
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="estado_mental" class="form-label small mb-1">Estado Mental <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm" name="estado_mental" id="estado_mental" required>
+                                <option value="" disabled {% if not estado_mental %}selected{% endif %}>Seleccione una opción</option>
+                                <option value="Lúcido" {% if estado_mental == 'Lúcido' %}selected{% endif %}>Lúcido - Orientado en tiempo y espacio</option>
+                                <option value="Desorientado" {% if estado_mental == 'Desorientado' %}selected{% endif %}>Desorientado - Confusión ocasional</option>
+                                <option value="Demencia" {% if estado_mental == 'Demencia' %}selected{% endif %}>Demencia - Pérdida cognitiva significativa</option>
+                            </select>
+                        </div>
+
+                        <!-- Resumen de campos obligatorios -->
+                        <div class="bg-light p-2 mb-3 small border">
+                            <i class="bi bi-check-circle me-1 text-success"></i>
+                            <span class="text-muted">Campos marcados con <span class="text-danger">*</span> son obligatorios</span>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-save me-2"></i> Guardar Registro
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- Información adicional al pie -->
+    <div class="mt-4 small text-muted border-top pt-2">
+        <div class="d-flex justify-content-between">
+            <span><i class="bi bi-info-circle me-1"></i> Todos los datos son confidenciales</span>
+            <span><i class="bi bi-shield-check me-1"></i> Sistema de Gestión de Residentes v1.0</span>
+        </div>
+    </div>
 </div>
+
+<!-- Modal minimalista con descripción mejorada -->
+<div class="modal fade" id="resultadoModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content rounded-0 border">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h6 class="modal-title fw-normal">
+                    {% if mensaje == 'insertado' %}
+                    <i class="bi bi-check-circle text-success me-2"></i>Registro Exitoso
+                    {% elif mensaje == 'existe' %}
+                    <i class="bi bi-exclamation-triangle text-warning me-2"></i>Cédula Duplicada
+                    {% elif mensaje == 'no_existe' %}
+                    <i class="bi bi-pencil-square me-2"></i>Registro Editado
+                    {% else %}
+                    Resultado
+                    {% endif %}
+                </h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="small mb-2">
+                    {% if mensaje == 'existe' %}
+                    ⚠️ Esta cédula ya está registrada en el sistema. Por favor verifique los datos.
+                    {% elif mensaje == 'insertado' %}
+                    ✅ El residente ha sido agregado correctamente al sistema.
+                    {% elif mensaje == 'no_existe' %}
+                    ✅ Los cambios han sido guardados correctamente.
+                    {% endif %}
+                </p>
+                
+                {% if mensaje == 'insertado' and request.args.get('nombre') %}
+                <!-- Descripción del residente guardado (si está disponible) -->
+                <div class="border-top pt-2 mt-2">
+                    <p class="small text-muted mb-1"><strong>Residente:</strong> {{ request.args.get('nombre', '') }} {{ request.args.get('apellido1', '') }}</p>
+                    <p class="small text-muted mb-1"><strong>Cédula:</strong> {{ request.args.get('cedula', '') }}</p>
+                    <p class="small text-muted mb-0"><strong>Fecha:</strong> {{ now().strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <a href="{{ url_for('index_residentes') }}" class="btn btn-sm btn-outline-secondary" id="closeModalAndRedirect">
+                    Ir al Listado
+                </a>
+                {% if mensaje == 'insertado' and request.args.get('id') %}
+                <a href="{{ url_for('index_ver_info', id=request.args.get('id')) }}" class="btn btn-sm btn-outline-primary">
+                    Ver Detalles
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scripts -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Activar todos los tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Mostrar modal automáticamente si hay mensaje
+    {% if mensaje in ['existe', 'insertado', 'no_existe'] %}
+    var modal = new bootstrap.Modal(document.getElementById('resultadoModal'));
+    modal.show();
+    
+    // Manejar cierre del modal con redirección
+    var closeBtn = document.getElementById('closeModalAndRedirect');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            var modalInstance = bootstrap.Modal.getInstance(document.getElementById('resultadoModal'));
+            modalInstance.hide();
+            setTimeout(function() {
+                window.location.href = '{{ url_for("index_residentes") }}';
+            }, 150);
+        });
+    }
+    {% endif %}
+
+    // Validación básica para teléfonos (solo números)
+    var telefonos = document.querySelectorAll('input[type="tel"], #telefono, #telefono_emergencia');
+    telefonos.forEach(function(input) {
+        input.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    });
+});
+</script>
+
+<style>
+/* Estilo académico - minimalista, funcional, sin colores distractores */
+body {
+    font-family: 'Segoe UI', 'Arial', sans-serif;
+    background-color: #fff;
+}
+.container-fluid {
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.border {
+    border: 1px solid #dee2e6 !important;
+}
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+.form-control, .form-select {
+    border-radius: 0;
+    border: 1px solid #ced4da;
+    font-size: 0.9rem;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #495057;
+    box-shadow: none;
+}
+.form-label {
+    font-weight: 400;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+.btn-outline-primary, .btn-outline-secondary {
+    border-color: #ced4da;
+    color: #495057;
+    border-radius: 0;
+}
+.btn-outline-primary:hover, .btn-outline-secondary:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+    color: #212529;
+}
+.btn-sm {
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+}
+.alert-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 0;
+    border-left: 3px solid transparent;
+}
+.alert-warning {
+    border-left-color: #ffc107;
+}
+.alert-success {
+    border-left-color: #28a745;
+}
+h2, h4, h6 {
+    font-weight: 400;
+}
+.border-bottom {
+    border-bottom: 1px solid #dee2e6 !important;
+}
+.modal-content {
+    border-radius: 0;
+    border: 1px solid #dee2e6;
+}
+[data-bs-toggle="tooltip"] {
+    cursor: help;
+}
+.badge.bg-light {
+    background-color: #f8f9fa !important;
+    color: #495057 !important;
+    border: 1px solid #dee2e6;
+    font-weight: normal;
+    padding: 0.2rem 0.5rem;
+}
+.collapse {
+    transition: all 0.2s ease;
+}
+.form-text {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+.text-danger {
+    color: #dc3545 !important;
+}
+/* Pequeño ajuste para los placeholders */
+::placeholder {
+    color: #adb5bd;
+    font-size: 0.85rem;
+}
+</style>
 
 {% include 'footer.html' %}

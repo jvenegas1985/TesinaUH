@@ -71,36 +71,59 @@
 </head>
 <body>
   
+<body>
+  <div class="container-fluid vh-100 d-flex align-items-center justify-content-center">
+    <div class="row w-100" style="max-width: 900px;">
 
-  <div class="login-card">
-    <div class="text-center">
-      <i class="bi bi-person-circle login-icon"></i>
-      <h3 class="mb-4">Iniciar Sesión</h3>
+      <!-- Columna Izquierda -->
+      <div class="col-md-6 text-center d-flex flex-column justify-content-center">
+        <i class="bi bi-person-circle login-icon"></i>
+        <h4 class="fw-bold text-primary mt-3">
+          Residencia Geriátrica Camino Dorado
+        </h4>
+        <p class="text-muted">
+          Sistema Web de Gestión Institucional
+        </p>
+        
+      </div>
+
+      <!-- Columna Derecha -->
+      <div class="col-md-6">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+        <div class="login-card">
+
+          <form action="/login" method="POST">
+            <div class="mb-3">
+              <label class="form-label">Usuario</label>
+              <input type="text" class="form-control" name="usuario" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Contraseña</label>
+              <input type="password" class="form-control" name="contraseña" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">
+              Iniciar Sesión
+            </button>
+            
+          </form>
+
+        </div>
+      </div>
+
     </div>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-
-    <form action="/login" method="POST">
-      <div class="mb-3">
-        <label for="usuario" class="form-label">Usuario</label>
-        <input type="text" class="form-control" id="usuario" name="usuario" required placeholder="Ingrese su usuario">
-      </div>
-      <div class="mb-3">
-        <label for="contraseña" class="form-label">Contraseña</label>
-        <input type="password" class="form-control" id="contraseña" name="contraseña" required placeholder="Ingrese su contraseña">
-      </div>
-      <button type="submit" class="btn btn-primary mt-3">Iniciar Sesión</button>
-    </form>
   </div>
+
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

@@ -1,7 +1,7 @@
-{% extends "modulos/inventarios/base_inventario.html" %}
+{% include '/modulos/clientes/admin_header.html' %}
 
-{% block title %}Insumos - Inventarios{% endblock %}
-{% block module_title %}<i class="fas fa-box me-2"></i>Gestión de Insumos{% endblock %}
+
+
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -76,27 +76,30 @@
                         <td>₡{{ "{:,.0f}".format(insumo.precio_compra) if insumo.precio_compra else '-' }}</td>
                         <td class="text-center">
                             <div class="btn-group btn-group-sm">
-                                <a href="{{ url_for('ver_movimientos', insumo_id=insumo.id) }}" 
-                                   class="btn btn-outline-info" title="Ver movimientos">
-                                    <i class="fas fa-history"></i>
-                                </a>
-                                <button type="button" class="btn btn-outline-warning" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#modalAjustarStock{{ insumo.id }}"
-                                        title="Ajustar stock">
-                                    <i class="fas fa-balance-scale"></i>
-                                </button>
-                                <a href="{{ url_for('editar_insumo', insumo_id=insumo.id) }}" 
-                                   class="btn btn-outline-primary" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button" class="btn btn-outline-danger" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#modalEliminar{{ insumo.id }}"
-                                        title="Desactivar">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
+    <a href="{{ url_for('ver_movimientos', insumo_id=insumo.id) }}" 
+       class="btn btn-outline-info">
+        <i class="fas fa-history me-1"></i> Movimientos
+    </a>
+
+    <button type="button" 
+            class="btn btn-outline-warning"
+            data-bs-toggle="modal" 
+            data-bs-target="#modalAjustarStock{{ insumo.id }}">
+        <i class="fas fa-balance-scale me-1"></i> Ajustar
+    </button>
+
+    <a href="{{ url_for('editar_insumo', insumo_id=insumo.id) }}" 
+       class="btn btn-outline-primary">
+        <i class="fas fa-edit me-1"></i> Editar
+    </a>
+
+    <button type="button" 
+            class="btn btn-outline-danger"
+            data-bs-toggle="modal" 
+            data-bs-target="#modalEliminar{{ insumo.id }}">
+        <i class="fas fa-trash-alt me-1"></i> Desactivar
+    </button>
+</div>
                         </td>
                     </tr>
                     {% endfor %}

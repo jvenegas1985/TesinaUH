@@ -1,4 +1,4 @@
-{% extends "modulos/inventarios/base_inventario.html" %}
+{% include '/modulos/clientes/admin_header.html' %}
 
 {% block title %}Órdenes de Compra - Inventarios{% endblock %}
 {% block module_title %}<i class="fas fa-shopping-cart me-2"></i>Órdenes de Compra{% endblock %}
@@ -45,21 +45,26 @@
                         </td>
                         <td>{{ orden.creador_nombre or '-' }}</td>
                         <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ url_for('editar_orden_compra', orden_id=orden.id) }}" 
-                                   class="btn btn-outline-primary" title="Ver/Editar">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                {% if orden.estado == 'Pendiente' %}
-                                <button type="button" class="btn btn-outline-success" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#modalRecibir{{ orden.id }}"
-                                        title="Recibir orden">
-                                    <i class="fas fa-truck"></i>
-                                </button>
-                                {% endif %}
-                            </div>
-                        </td>
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+        <!-- Ver / Editar -->
+        <a href="{{ url_for('editar_orden_compra', orden_id=orden.id) }}" 
+           class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-eye me-1"></i> Ver / Editar
+        </a>
+
+        {% if orden.estado == 'Pendiente' %}
+        <!-- Recibir -->
+        <button type="button" 
+                class="btn btn-outline-success btn-sm"
+                data-bs-toggle="modal" 
+                data-bs-target="#modalRecibir{{ orden.id }}">
+            <i class="fas fa-truck me-1"></i> Recibir
+        </button>
+        {% endif %}
+
+    </div>
+</td>
                     </tr>
                     {% endfor %}
                 </tbody>

@@ -1,7 +1,6 @@
-{% extends "modulos/inventarios/base_inventario.html" %}
+{% include '/modulos/clientes/admin_header.html' %}
 
-{% block title %}Proveedores - Inventarios{% endblock %}
-{% block module_title %}<i class="fas fa-truck me-2"></i>Gestión de Proveedores{% endblock %}
+
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -37,18 +36,25 @@
                             <span class="badge bg-info">{{ prov.total_insumos or 0 }} insumos</span>
                         </td>
                         <td class="text-center">
-                            <div class="btn-group btn-group-sm">
-                                <a href="{{ url_for('editar_proveedor', proveedor_id=prov.id) }}" 
-                                   class="btn btn-outline-primary" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button type="button" class="btn btn-outline-danger" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#modalEliminar{{ prov.id }}"
-                                        title="Desactivar">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </div>
+                      
+    <div class="d-flex justify-content-center gap-2 flex-wrap">
+
+        <!-- Editar -->
+        <a href="{{ url_for('editar_proveedor', proveedor_id=prov.id) }}" 
+           class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-edit me-1"></i> Editar
+        </a>
+
+        <!-- Desactivar -->
+        <button type="button" 
+                class="btn btn-outline-danger btn-sm"
+                data-bs-toggle="modal" 
+                data-bs-target="#modalEliminar{{ prov.id }}">
+            <i class="fas fa-trash-alt me-1"></i> Desactivar
+        </button>
+
+    </div>
+</td>
                         </td>
                     </tr>
                     {% endfor %}

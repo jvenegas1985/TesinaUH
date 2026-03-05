@@ -1,0 +1,111 @@
+{% include '/modulos/clientes/admin_header.html' %}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Nuevo Familiar</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('nuevo_familiar') }}">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Cédula <span class="text-danger">*</span></label>
+                        <input type="text" name="cedula" class="form-control" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Nombre <span class="text-danger">*</span></label>
+                        <input type="text" name="nombre" class="form-control" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Primer Apellido <span class="text-danger">*</span></label>
+                        <input type="text" name="apellido1" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label>Segundo Apellido</label>
+                        <input type="text" name="apellido2" class="form-control">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Email</label>
+                        <input type="email" name="email" class="form-control">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label>Teléfono</label>
+                        <input type="text" name="telefono" class="form-control">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label>Usuario <span class="text-danger">*</span></label>
+                        <input type="text" name="username" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label>Contraseña <span class="text-danger">*</span></label>
+                        <input type="password" name="password" class="form-control" required>
+                    </div>
+                </div>
+
+                <hr>
+                <h5>Residentes Asignados</h5>
+                <p class="text-muted">Seleccione los residentes que este familiar podrá ver:</p>
+
+                <div class="row">
+                    {% for r in residentes %}
+                    <div class="col-md-6 mb-2">
+                        <div class="card">
+                            <div class="card-body py-2">
+                                <div class="row align-items-center">
+                                    <div class="col-md-5">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="residentes[]" value="{{ r.id }}" 
+                                                   id="res{{ r.id }}">
+                                            <label class="form-check-label" for="res{{ r.id }}">
+                                                <strong>{{ r.nombre }} {{ r.apellido1 }}</strong>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <select class="form-select form-select-sm" 
+                                                name="parentesco_{{ r.id }}">
+                                            <option value="PADRE">Padre</option>
+                                            <option value="MADRE">Madre</option>
+                                            <option value="HIJO">Hijo</option>
+                                            <option value="HIJA">Hija</option>
+                                            <option value="ESPOSO">Esposo</option>
+                                            <option value="ESPOSA">Esposa</option>
+                                            <option value="HERMANO">Hermano</option>
+                                            <option value="HERMANA">Hermana</option>
+                                            <option value="OTRO" selected>Otro</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" 
+                                                   name="principal_{{ r.id }}" 
+                                                   id="princ{{ r.id }}">
+                                            <label class="form-check-label" for="princ{{ r.id }}">
+                                                Principal
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Guardar Familiar</button>
+                    <a href="{{ url_for('listar_familiares') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% include 'footer.html' %}

@@ -1,10 +1,17 @@
 import mysql.connector
-from flask import  jsonify, make_response, Flask, render_template, request, redirect, url_for, flash
+from flask import  jsonify, make_response, Flask, render_template, request, redirect, url_for, flash, abort
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import database as db
 from datetime import datetime, time
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash,generate_password_hash
 from functools import wraps
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
+
+
+
+
 
 
 
@@ -12,13 +19,14 @@ def role_required(*roles_permitidos):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
+
             if not current_user.is_authenticated:
                 flash("Debes iniciar sesión.", "warning")
-                return redirect(url_for('login'))
+                return redirect("/login")
 
             if current_user.rol not in roles_permitidos:
-                flash("No tienes permisos para acceder a esta sección.", "danger")
-                return redirect(url_for('index_admin'))
+                flash("No tienes permisos para realizar esta acción.", "danger")
+                return redirect(request.referrer or "/")
 
             return func(*args, **kwargs)
         return wrapper
@@ -31,39 +39,106 @@ def role_required(*roles_permitidos):
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://" 
+)
+
+
+
+
+
+
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'  # página a redirigir si no está autenticado
 
 class User(UserMixin):
-    def __init__(self, id, username, password, rol, nombre):
+    def __init__(self, id, username, rol, nombre):
+        self.id = id
+        self.username = username
+        self.rol = rol
+        self.nombre = nombre
+
+    def get_id(self):
+        return f"user_{self.id}"
+    
+class Familiar(UserMixin):
+    def __init__(self, id, username, password, nombre, cedula, email, activo=True):
         self.id = id
         self.username = username
         self.password = password
-        self.rol = rol
         self.nombre = nombre
+        self.cedula = cedula
+        self.email = email
+        self.activo = activo
+        self.rol = 'familiar'  # Rol fijo para identificar
+    
+    def get_id(self):
+        return f"familiar_{self.id}"
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    """Cargar usuario - versión para database.py simple"""
     try:
-        # Importar directamente la conexión
         from database import database
-        
-        cursor = database.cursor()
-        cursor.execute("SELECT id, username, password, rol, nombre FROM usuarios WHERE id = %s", (user_id,))
-        user = cursor.fetchone()
-        cursor.close()
-        
-        if user:
-            return User(id=user[0], username=user[1], password=user[2], rol=user[3], nombre=user[4])
-        return None
-        
-    except Exception as e:
-        print(f"⚠️ Error en load_user para usuario {user_id}: {e}")
+        cursor = database.cursor(dictionary=True)
+
+        if user_id.startswith('familiar_'):
+            familiar_id = user_id.replace('familiar_', '')
+
+            cursor.execute("""
+                SELECT id, username, nombre, cedula, email, activo
+                FROM familiares 
+                WHERE id = %s AND activo = TRUE
+            """, (familiar_id,))
+
+            familiar = cursor.fetchone()
+            cursor.close()
+
+            if familiar:
+                return Familiar(
+                    id=familiar['id'],
+                    username=familiar['username'],
+                    password=None,
+                    nombre=familiar['nombre'],
+                    cedula=familiar['cedula'],
+                    email=familiar['email'],
+                    activo=familiar['activo']
+                )
+            return None
+
+        elif user_id.startswith('user_'):
+            user_id_clean = user_id.replace('user_', '')
+
+            cursor.execute("""
+                SELECT id, username, rol, nombre, activo
+                FROM usuarios 
+                WHERE id = %s AND activo = 1
+            """, (user_id_clean,))
+
+            user = cursor.fetchone()
+            cursor.close()
+
+            if user:
+                return User(
+                    id=user['id'],
+                    username=user['username'],
+                    rol=user['rol'],
+                    nombre=user['nombre']
+                )
+            return None
+
         return None
 
+    except Exception as e:
+        print(f"⚠️ Error en load_user: {e}")
+        return None
 
 @app.context_processor
 def inject_user():
@@ -76,52 +151,102 @@ def index_publico():
 from flask import session
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
 def login():
     if request.method == 'POST':
         username = request.form.get('usuario')
         password = request.form.get('contraseña')
 
-        cursor = db.database.cursor()
+        cursor = db.database.cursor(dictionary=True)
+
+        # 1️⃣ Buscar en usuarios internos
         cursor.execute("""
             SELECT id, username, password, rol, nombre, activo
             FROM usuarios
             WHERE username = %s
         """, (username,))
         user = cursor.fetchone()
+
+        if user:
+            cursor.close()
+            if user['activo'] == 0:
+                flash("Tu cuenta está inactiva. Contacta al administrador.", "warning")
+                return render_template('login.html')
+
+            if not check_password_hash(user['password'], password):
+                flash("Contraseña incorrecta.", "danger")
+                return render_template('login.html')
+
+            user_obj = User(
+                id=user['id'],
+                username=user['username'],
+                rol=user['rol'],
+                nombre=user['nombre']
+            )
+
+            login_user(user_obj)
+            session['rol'] = user_obj.rol
+            session['nombre'] = user_obj.nombre
+            session['tipo_usuario'] = 'interno'
+            session['mostrar_modal'] = True
+
+            flash("Inicio de sesión exitoso", "success")
+            return redirect(url_for('index_admin'))
+
+        # 2️⃣ Buscar en familiares - VERSIÓN CORREGIDA
+        cursor.execute("""
+            SELECT id, username, password, nombre, cedula, email, activo
+            FROM familiares
+            WHERE username = %s
+        """, (username,))
+        familiar = cursor.fetchone()
         cursor.close()
 
-        if not user:
-            flash("Usuario no encontrado.", "danger")
-            return render_template('login.html')
+        if familiar:
+            if familiar['activo'] == 0:
+                flash("Tu cuenta está inactiva. Contacta al administrador.", "warning")
+                return render_template('login.html')
 
-        if user[5] == 0:
-            flash("Tu cuenta está inactiva. Contacta al administrador.", "warning")
-            return render_template('login.html')
+            if not check_password_hash(familiar['password'], password):
+                flash("Contraseña incorrecta.", "danger")
+                return render_template('login.html')
 
-        # 🔐 VALIDACIÓN CON HASH
-        if not check_password_hash(user[2], password):
-            flash("Contraseña incorrecta.", "danger")
-            return render_template('login.html')
+            # 🔴 CORREGIDO: Agregar password como parámetro
+            familiar_obj = Familiar(
+                id=familiar['id'],
+                username=familiar['username'],
+                password=familiar['password'],  # ← ESTE FALTABA
+                nombre=familiar['nombre'],
+                cedula=familiar['cedula'],
+                email=familiar['email'],
+                activo=familiar['activo']
+            )
 
-        # Login correcto
-        user_obj = User(
-            id=user[0],
-            username=user[1],
-            password=user[2],
-            rol=user[3],
-            nombre=user[4]
-        )
+            login_user(familiar_obj)
+            session['rol'] = 'familiar'
+            session['nombre'] = familiar_obj.nombre
+            session['tipo_usuario'] = 'familiar'
 
-        login_user(user_obj)
+            # Actualizar último acceso
+            cursor_up = db.database.cursor()
+            cursor_up.execute(
+                "UPDATE familiares SET ultimo_acceso = NOW() WHERE id = %s",
+                (familiar['id'],)
+            )
+            db.database.commit()
+            cursor_up.close()
 
-        session['rol'] = user_obj.rol
-        session['nombre'] = user_obj.nombre
-        session['mostrar_modal'] = True
+            flash(f"Bienvenido {familiar_obj.nombre}", "success")
+            return redirect(url_for('familiar_dashboard'))
 
-        flash("Inicio de sesión exitoso", "success")
-        return redirect(url_for('index_admin'))
+        flash("Usuario o contraseña incorrectos", "danger")
 
     return render_template('login.html')
+
+@app.errorhandler(429)
+def ratelimit_error(e):
+    flash("Demasiados intentos. Espera un momento e intenta de nuevo.", "danger")
+    return render_template('login.html'), 429
 
 
 
@@ -140,13 +265,616 @@ def limpiar_modal():
     return '', 204
 
 
+@app.route('/familiar/dashboard')
+@login_required
+def familiar_dashboard():
+    """Dashboard para familiares - muestra solo los residentes asignados"""
+    
+    # Verificar que sea familiar
+    if session.get('tipo_usuario') != 'familiar':
+        flash("Acceso no autorizado", "danger")
+        return redirect(url_for('login'))
+    
+    # Obtener el ID real del familiar
+    familiar_id = current_user.real_id if hasattr(current_user, 'real_id') else str(current_user.id).replace('familiar_', '')
+    
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Obtener residentes asignados al familiar
+        cursor.execute("""
+            SELECT 
+                r.id,
+                r.cedula,
+                r.nombre,
+                r.apellido1,
+                r.apellido2,
+                r.fecha_nacimiento,
+                fr.parentesco,
+                fr.es_contacto_principal,
+                TIMESTAMPDIFF(YEAR, r.fecha_nacimiento, CURDATE()) as edad,
+                CONCAT(r.nombre, ' ', r.apellido1, ' ', COALESCE(r.apellido2, '')) as nombre_completo,
+                c.numero as cama_actual
+            FROM residentes r
+            INNER JOIN familiar_residente fr ON r.id = fr.residente_id
+            LEFT JOIN asignacion_camas ac ON r.id = ac.residente_id AND ac.estado = 'Activa'
+            LEFT JOIN camas c ON ac.cama_id = c.id
+            WHERE fr.familiar_id = %s AND fr.activo = 1 AND r.activo = 1
+            ORDER BY r.nombre, r.apellido1
+        """, (familiar_id,))
+        
+        residentes = cursor.fetchall()
+        
+        # Para cada residente, obtener las últimas 3 actividades
+        for residente in residentes:
+            cursor.execute("""
+                SELECT 
+                    b.tipo,
+                    b.descripcion,
+                    DATE_FORMAT(b.fecha_hora, '%d/%m/%Y %H:%i') as fecha,
+                    u.nombre as personal_nombre
+                FROM bitacora_pacientes b
+                LEFT JOIN usuarios u ON b.personal_id = u.id
+                WHERE b.residente_id = %s AND b.estado = 'activo'
+                ORDER BY b.fecha_hora DESC
+                LIMIT 3
+            """, (residente['id'],))
+            
+            residente['ultimas_actividades'] = cursor.fetchall()
+            
+            # Contar actividades de hoy
+            cursor.execute("""
+                SELECT COUNT(*) as total
+                FROM bitacora_pacientes
+                WHERE residente_id = %s 
+                  AND DATE(fecha_hora) = CURDATE()
+                  AND estado = 'activo'
+            """, (residente['id'],))
+            
+            residente['actividades_hoy'] = cursor.fetchone()['total']
+        
+    except Exception as e:
+        print(f"Error en familiar_dashboard: {e}")
+        residentes = []
+        flash(f"Error al cargar datos: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/familiares/dashboard.html',
+                         residentes=residentes,
+                         hoy=datetime.now().strftime('%d/%m/%Y'))
+
+
+
+
+@app.route('/admin/familiares')
+@login_required
+@role_required('administrador', 'asistente_administrativo')
+def listar_familiares():
+    """Lista todos los familiares registrados"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        cursor.execute("""
+            SELECT f.*, 
+                   COUNT(fr.residente_id) as total_residentes,
+                   GROUP_CONCAT(CONCAT(r.nombre, ' ', r.apellido1) SEPARATOR ', ') as residentes_asignados
+            FROM familiares f
+            LEFT JOIN familiar_residente fr ON f.id = fr.familiar_id AND fr.activo = 1
+            LEFT JOIN residentes r ON fr.residente_id = r.id
+            GROUP BY f.id
+            ORDER BY f.nombre, f.apellido1
+        """)
+        familiares = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error listando familiares: {e}")
+        familiares = []
+        flash(f"Error al cargar familiares: {str(e)}", "danger")
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/usuarios/familiares.html', familiares=familiares)
+
+
+
+
+@app.route('/admin/familiares/nuevo', methods=['GET', 'POST'])
+@login_required
+@role_required('administrador')
+def nuevo_familiar():
+    """Crea un nuevo familiar"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    if request.method == 'POST':
+        cedula = request.form.get('cedula', '').strip()
+        nombre = request.form.get('nombre', '').strip().upper()
+        apellido1 = request.form.get('apellido1', '').strip().upper()
+        apellido2 = request.form.get('apellido2', '').strip().upper()
+        telefono = request.form.get('telefono', '').strip()
+        email = request.form.get('email', '').strip()
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        
+        # Obtener residentes seleccionados
+        residentes_asignados = request.form.getlist('residentes[]')
+        
+        print(f"🔍 DEBUG - Residentes seleccionados: {residentes_asignados}")
+        
+        # Validaciones
+        if not all([cedula, nombre, apellido1, username, password]):
+            flash("Cédula, nombre, apellido, usuario y contraseña son obligatorios", "danger")
+            return redirect(url_for('nuevo_familiar'))
+        
+        try:
+            # Verificar cédula única
+            cursor.execute("SELECT id FROM familiares WHERE cedula = %s", (cedula,))
+            if cursor.fetchone():
+                flash(f"Ya existe un familiar con cédula {cedula}", "danger")
+                return redirect(url_for('nuevo_familiar'))
+            
+            # Verificar username único
+            cursor.execute("SELECT id FROM familiares WHERE username = %s", (username,))
+            if cursor.fetchone():
+                flash(f"El username {username} ya está en uso", "danger")
+                return redirect(url_for('nuevo_familiar'))
+            
+            # Verificar email único (si se proporcionó)
+            if email:
+                cursor.execute("SELECT id FROM familiares WHERE email = %s", (email,))
+                if cursor.fetchone():
+                    flash(f"El email {email} ya está registrado", "danger")
+                    return redirect(url_for('nuevo_familiar'))
+            
+            # Hash de contraseña
+            password_hash = generate_password_hash(password)
+            
+            # Insertar familiar
+            cursor.execute("""
+                INSERT INTO familiares 
+                (cedula, nombre, apellido1, apellido2, telefono, email, username, password, creado_por)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (cedula, nombre, apellido1, apellido2, telefono, email, username, password_hash, current_user.id))
+            
+            familiar_id = cursor.lastrowid
+            print(f"✅ Familiar creado con ID: {familiar_id}")
+            
+            # Asignar residentes - PARTE CORREGIDA
+            if residentes_asignados and len(residentes_asignados) > 0:
+                asignaciones_exitosas = 0
+                for residente_id in residentes_asignados:
+                    try:
+                        # Obtener parentesco específico para este residente
+                        parentesco = request.form.get(f'parentesco_{residente_id}', 'OTRO')
+                        es_principal = 1 if request.form.get(f'principal_{residente_id}') == 'on' else 0
+                        
+                        print(f"   Asignando residente {residente_id}: parentesco={parentesco}, principal={es_principal}")
+                        
+                        # Insertar en familiar_residente
+                        cursor.execute("""
+                            INSERT INTO familiar_residente 
+                            (familiar_id, residente_id, parentesco, es_contacto_principal, 
+                             puede_ver_historial, puede_ver_medicacion, activo)
+                            VALUES (%s, %s, %s, %s, 1, 1, 1)
+                        """, (familiar_id, residente_id, parentesco, es_principal))
+                        
+                        asignaciones_exitosas += 1
+                        
+                    except Exception as e:
+                        print(f"❌ Error asignando residente {residente_id}: {str(e)}")
+                        continue
+                
+                print(f"✅ {asignaciones_exitosas} residentes asignados correctamente")
+            else:
+                print("ℹ️ No se seleccionaron residentes")
+            
+            db.database.commit()
+            flash(f"Familiar {nombre} {apellido1} creado exitosamente con {len(residentes_asignados)} residente(s)", "success")
+            return redirect(url_for('listar_familiares'))
+            
+        except Exception as e:
+            db.database.rollback()
+            print(f"❌ Error al crear familiar: {str(e)}")
+            flash(f"Error al crear familiar: {str(e)}", "danger")
+            import traceback
+            traceback.print_exc()
+    
+    # GET: cargar residentes disponibles
+    cursor.execute("""
+        SELECT id, cedula, nombre, apellido1, apellido2 
+        FROM residentes 
+        WHERE activo = 1 
+        ORDER BY nombre, apellido1
+    """)
+    residentes = cursor.fetchall()
+    cursor.close()
+    
+    return render_template('modulos/usuarios/nuevo_familiar.html', residentes=residentes)
+
+
+
+@app.route('/admin/familiares/<int:familiar_id>/residentes')
+@login_required
+@role_required('administrador', 'asistente_administrativo')
+def get_familiar_residentes(familiar_id):
+    """API para obtener los residentes asignados a un familiar"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Verificar que el familiar existe
+        cursor.execute("SELECT id, nombre, apellido1 FROM familiares WHERE id = %s", (familiar_id,))
+        familiar = cursor.fetchone()
+        
+        if not familiar:
+            return jsonify({'error': 'Familiar no encontrado'}), 404
+        
+        # Obtener residentes asignados ACTIVOS
+        cursor.execute("""
+            SELECT 
+                r.id,
+                r.cedula,
+                r.nombre,
+                r.apellido1,
+                r.apellido2,
+                fr.parentesco,
+                fr.es_contacto_principal
+            FROM familiar_residente fr
+            INNER JOIN residentes r ON fr.residente_id = r.id
+            WHERE fr.familiar_id = %s AND fr.activo = 1 AND r.activo = 1
+            ORDER BY r.nombre, r.apellido1
+        """, (familiar_id,))
+        
+        residentes = cursor.fetchall()
+        
+        print(f"Residentes encontrados para familiar {familiar_id}: {len(residentes)}")  # DEBUG
+        
+        return jsonify({
+            'success': True,
+            'familiar': {
+                'id': familiar['id'],
+                'nombre': f"{familiar['nombre']} {familiar['apellido1']}"
+            },
+            'residentes': residentes,
+            'total': len(residentes)
+        })
+        
+    except Exception as e:
+        print(f"Error en get_familiar_residentes: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+
+
+
+@app.route('/admin/familiares/<int:familiar_id>/residentes-disponibles')
+@login_required
+@role_required('administrador', 'asistente_administrativo')
+def get_residentes_disponibles(familiar_id):
+    """API para obtener todos los residentes y marcar los asignados"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Obtener todos los residentes activos
+        cursor.execute("""
+            SELECT id, cedula, nombre, apellido1, apellido2
+            FROM residentes 
+            WHERE activo = 1 
+            ORDER BY nombre, apellido1
+        """)
+        todos_residentes = cursor.fetchall()
+        
+        # Obtener asignaciones actuales del familiar
+        cursor.execute("""
+            SELECT residente_id, parentesco, es_contacto_principal
+            FROM familiar_residente
+            WHERE familiar_id = %s AND activo = 1
+        """, (familiar_id,))
+        
+        asignaciones = cursor.fetchall()
+        asignados_dict = {a['residente_id']: a for a in asignaciones}
+        
+        # Combinar datos
+        residentes = []
+        for r in todos_residentes:
+            residentes.append({
+                'id': r['id'],
+                'cedula': r['cedula'],
+                'nombre': r['nombre'],
+                'apellido1': r['apellido1'],
+                'apellido2': r['apellido2'],
+                'asignado': r['id'] in asignados_dict,
+                'parentesco': asignados_dict.get(r['id'], {}).get('parentesco', 'OTRO'),
+                'principal': asignados_dict.get(r['id'], {}).get('es_contacto_principal', False)
+            })
+        
+        return jsonify({'residentes': residentes})
+        
+    except Exception as e:
+        print(f"Error en get_residentes_disponibles: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+
+
+@app.route('/admin/familiares/<int:familiar_id>/datos')
+@login_required
+@role_required('administrador', 'asistente_administrativo')
+def get_familiar_datos(familiar_id):
+    """API para obtener datos de un familiar"""
+    cursor = db.database.cursor(dictionary=True)
+    try:
+        cursor.execute("""
+            SELECT id, cedula, nombre, apellido1, apellido2, 
+                   fecha_nacimiento, genero, telefono, email, direccion, 
+                   username, activo
+            FROM familiares 
+            WHERE id = %s
+        """, (familiar_id,))
+        
+        familiar = cursor.fetchone()
+        
+        if not familiar:
+            return jsonify({'error': 'Familiar no encontrado'}), 404
+        
+        # Formatear fecha
+        if familiar.get('fecha_nacimiento'):
+            if hasattr(familiar['fecha_nacimiento'], 'strftime'):
+                familiar['fecha_nacimiento'] = familiar['fecha_nacimiento'].strftime('%Y-%m-%d')
+        
+        return jsonify(familiar)
+        
+    except Exception as e:
+        print(f"Error en get_familiar_datos: {e}")
+        return jsonify({'error': str(e)}), 500
+    finally:
+        cursor.close()
+
+
+
+@app.route('/admin/familiares/<int:familiar_id>/editar', methods=['POST'])
+@login_required
+@role_required('administrador')
+def editar_familiar(familiar_id):
+    """Actualiza datos de un familiar"""
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Verificar que el familiar existe
+        cursor.execute("SELECT id FROM familiares WHERE id = %s", (familiar_id,))
+        if not cursor.fetchone():
+            flash("Familiar no encontrado", "danger")
+            return redirect(url_for('listar_familiares'))
+        
+        # Obtener datos del formulario
+        cedula = request.form.get('cedula', '').strip()
+        nombre = request.form.get('nombre', '').strip().upper()
+        apellido1 = request.form.get('apellido1', '').strip().upper()
+        apellido2 = request.form.get('apellido2', '').strip().upper()
+        fecha_nacimiento = request.form.get('fecha_nacimiento') or None
+        genero = request.form.get('genero', '').strip()  # ← ESTE ES EL CAMPO PROBLEMÁTICO
+        telefono = request.form.get('telefono', '').strip()
+        email = request.form.get('email', '').strip()
+        direccion = request.form.get('direccion', '').strip().upper()
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        activo = 1 if request.form.get('activo') else 0
+        
+        # 🔴 VALIDACIÓN IMPORTANTE: El género debe ser uno de los valores permitidos
+        valores_validos_genero = ['Masculino', 'Femenino', 'Otro', '']
+        if genero and genero not in valores_validos_genero:
+            genero = ''  # Si no es válido, lo dejamos vacío
+            print(f"Género inválido recibido: {genero}")
+        
+        # Validaciones básicas
+        if not all([cedula, nombre, apellido1, username]):
+            flash("Cédula, nombre, apellido y usuario son obligatorios", "danger")
+            return redirect(url_for('listar_familiares'))
+        
+        # Verificar cédula única (excluyendo este registro)
+        cursor.execute("SELECT id FROM familiares WHERE cedula = %s AND id != %s", (cedula, familiar_id))
+        if cursor.fetchone():
+            flash(f"Ya existe otro familiar con cédula {cedula}", "danger")
+            return redirect(url_for('listar_familiares'))
+        
+        # Verificar username único
+        cursor.execute("SELECT id FROM familiares WHERE username = %s AND id != %s", (username, familiar_id))
+        if cursor.fetchone():
+            flash(f"El nombre de usuario {username} ya está en uso", "danger")
+            return redirect(url_for('listar_familiares'))
+        
+        # Verificar email único (si se proporcionó)
+        if email:
+            cursor.execute("SELECT id FROM familiares WHERE email = %s AND id != %s", (email, familiar_id))
+            if cursor.fetchone():
+                flash(f"El email {email} ya está registrado", "danger")
+                return redirect(url_for('listar_familiares'))
+        
+        # 🔴 CORRECCIÓN: Manejar el género NULL si está vacío
+        if genero == '':
+            genero = None
+        
+        # Actualizar familiar
+        if password and len(password) >= 6:
+            password_hash = generate_password_hash(password)
+            cursor.execute("""
+                UPDATE familiares SET
+                    cedula = %s,
+                    nombre = %s,
+                    apellido1 = %s,
+                    apellido2 = %s,
+                    fecha_nacimiento = %s,
+                    genero = %s,
+                    telefono = %s,
+                    email = %s,
+                    direccion = %s,
+                    username = %s,
+                    password = %s,
+                    activo = %s
+                WHERE id = %s
+            """, (cedula, nombre, apellido1, apellido2, fecha_nacimiento, 
+                  genero, telefono, email, direccion, username, password_hash, activo, familiar_id))
+        else:
+            cursor.execute("""
+                UPDATE familiares SET
+                    cedula = %s,
+                    nombre = %s,
+                    apellido1 = %s,
+                    apellido2 = %s,
+                    fecha_nacimiento = %s,
+                    genero = %s,
+                    telefono = %s,
+                    email = %s,
+                    direccion = %s,
+                    username = %s,
+                    activo = %s
+                WHERE id = %s
+            """, (cedula, nombre, apellido1, apellido2, fecha_nacimiento, 
+                  genero, telefono, email, direccion, username, activo, familiar_id))
+        
+        # Actualizar asignaciones de residentes
+        # Primero, desactivar todas las asignaciones actuales
+        cursor.execute("UPDATE familiar_residente SET activo = 0 WHERE familiar_id = %s", (familiar_id,))
+        
+        # Obtener residentes seleccionados
+        residentes_asignados = request.form.getlist('residentes[]')
+        
+        if residentes_asignados:
+            for residente_id in residentes_asignados:
+                parentesco = request.form.get(f'parentesco_{residente_id}', 'OTRO')
+                es_principal = 1 if request.form.get(f'principal_{residente_id}') == 'on' else 0
+                
+                # Verificar si ya existía una asignación
+                cursor.execute("""
+                    SELECT id FROM familiar_residente 
+                    WHERE familiar_id = %s AND residente_id = %s
+                """, (familiar_id, residente_id))
+                
+                existente = cursor.fetchone()
+                
+                if existente:
+                    # Actualizar existente
+                    cursor.execute("""
+                        UPDATE familiar_residente SET
+                            parentesco = %s,
+                            es_contacto_principal = %s,
+                            activo = 1
+                        WHERE id = %s
+                    """, (parentesco, es_principal, existente['id']))
+                else:
+                    # Insertar nueva
+                    cursor.execute("""
+                        INSERT INTO familiar_residente 
+                        (familiar_id, residente_id, parentesco, es_contacto_principal, activo)
+                        VALUES (%s, %s, %s, %s, 1)
+                    """, (familiar_id, residente_id, parentesco, es_principal))
+        
+        db.database.commit()
+        flash("Familiar actualizado correctamente", "success")
+        
+    except Exception as e:
+        db.database.rollback()
+        flash(f"Error al actualizar: {str(e)}", "danger")
+        print(f"Error en editar_familiar: {e}")
+        import traceback
+        traceback.print_exc()
+    finally:
+        cursor.close()
+    
+    return redirect(url_for('listar_familiares'))
+
+
+@app.route('/familiar/bitacora/<int:residente_id>')
+@login_required
+def familiar_ver_bitacora(residente_id):
+    """Familiar ve la bitácora completa de un residente (solo consulta)"""
+    
+    # Verificar que sea familiar
+    if session.get('tipo_usuario') != 'familiar':
+        flash("Acceso no autorizado", "danger")
+        return redirect(url_for('login'))
+    
+    familiar_id = current_user.real_id if hasattr(current_user, 'real_id') else str(current_user.id).replace('familiar_', '')
+    
+    cursor = db.database.cursor(dictionary=True)
+    
+    try:
+        # Verificar que el familiar tenga acceso a este residente
+        cursor.execute("""
+            SELECT fr.*, r.nombre, r.apellido1, r.apellido2
+            FROM familiar_residente fr
+            JOIN residentes r ON fr.residente_id = r.id
+            WHERE fr.familiar_id = %s 
+              AND fr.residente_id = %s 
+              AND fr.activo = 1
+        """, (familiar_id, residente_id))
+        
+        relacion = cursor.fetchone()
+        
+        if not relacion:
+            flash("No tienes acceso a este residente", "danger")
+            return redirect(url_for('familiar_dashboard'))
+        
+        # Obtener información del residente
+        cursor.execute("""
+            SELECT 
+                r.*,
+                TIMESTAMPDIFF(YEAR, r.fecha_nacimiento, CURDATE()) as edad,
+                CONCAT(r.nombre, ' ', r.apellido1, ' ', COALESCE(r.apellido2, '')) as nombre_completo
+            FROM residentes r
+            WHERE r.id = %s
+        """, (residente_id,))
+        
+        residente = cursor.fetchone()
+        
+        # Obtener bitácora completa (últimos 50 registros)
+        cursor.execute("""
+            SELECT 
+                b.*,
+                u.nombre as personal_nombre,
+                DATE_FORMAT(b.fecha_hora, '%d/%m/%Y %H:%i') as fecha_formateada,
+                DATE_FORMAT(b.fecha_hora, '%H:%i') as hora
+            FROM bitacora_pacientes b
+            LEFT JOIN usuarios u ON b.personal_id = u.id
+            WHERE b.residente_id = %s AND b.estado = 'activo'
+            ORDER BY b.fecha_hora DESC
+            LIMIT 50
+        """, (residente_id,))
+        
+        registros = cursor.fetchall()
+        
+        # Estadísticas por tipo
+        cursor.execute("""
+            SELECT 
+                tipo,
+                COUNT(*) as cantidad
+            FROM bitacora_pacientes
+            WHERE residente_id = %s AND estado = 'activo'
+            GROUP BY tipo
+            ORDER BY cantidad DESC
+        """, (residente_id,))
+        
+        stats_por_tipo = cursor.fetchall()
+        
+    except Exception as e:
+        print(f"Error en familiar_ver_bitacora: {e}")
+        flash(f"Error al cargar bitácora: {str(e)}", "danger")
+        return redirect(url_for('familiar_dashboard'))
+    finally:
+        cursor.close()
+    
+    return render_template('modulos/familiares/ver_bitacora.html',
+                         residente=residente,
+                         relacion=relacion,
+                         registros=registros,
+                         stats_por_tipo=stats_por_tipo)
+
 
 
 
 
 @app.route('/residentes',methods=['GET'])
 @login_required
-@role_required('administrador','medico')
+@role_required('administrador','medico', 'asistente_administrativo')
 def index_residentes():
     try:
         cursor = db.database.cursor()
@@ -174,6 +902,7 @@ def index_residentes():
 # Ruta para crear un nuevo cliente
 @app.route('/create')
 @login_required
+@role_required('administrador', 'asistente_administrativo')
 def index_create():
     return render_template('modulos/clientes/create.html')
 
@@ -182,6 +911,7 @@ def index_create():
 
 @app.route('/edit/<string:id>', methods=['GET'])
 @login_required
+@role_required('administrador','medico', 'asistente_administrativo')
 def index_editar(id):  # Asegúrate de que se reciba `id`
     cursor = db.database.cursor()  # Establecer conexión
     cursor.execute("SELECT * FROM residentes WHERE id = %s", (id,))
@@ -197,6 +927,7 @@ def index_editar(id):  # Asegúrate de que se reciba `id`
 
 @app.route('/eliminar/<string:id>',methods=['GET', 'POST'])
 @login_required
+@role_required('administrador')
 def eliminar_residente(id):
     cursor = db.database.cursor() # Establecer conexión
     cursor.execute("DELETE from RESIDENTES where id= %s", (id,))
@@ -209,9 +940,10 @@ def eliminar_residente(id):
 
 
 
-# Ruta para guardar un nuevo cliente
+# Ruta para guardar un nuevo residente
 @app.route('/modulos/clientes/create/guardar', methods=['POST'])
 @login_required
+@role_required('administrador', 'asistente_administrativo') 
 def btn_cliente_guardar():
     # ———————— Datos obligatorios del formulario ————————
     nombre = request.form.get('nombre', '').strip().upper()
@@ -220,11 +952,7 @@ def btn_cliente_guardar():
     cedula = request.form.get('cedula', '').strip()
     fecha_nacimiento = request.form.get('fecha_nacimiento', '').strip()
 
-    # Estos cuatro campos son ENUM en la BD: no usar .upper(), deben coincidir exactamente
-    #   genero  ENUM('Masculino','Femenino','Otro')
-    #   estado_civil ENUM('Soltero','Casado','Viudo','Divorciado')
-    #   movilidad ENUM('Independiente','Con ayuda','Dependiente')
-    #   estado_mental ENUM('Lúcido','Desorientado','Demencia')
+    # Estos cuatro campos son ENUM en la BD
     genero = request.form.get('genero', '').strip()
     estado_civil = request.form.get('estado_civil', '').strip()
     movilidad = request.form.get('movilidad', '').strip()
@@ -241,11 +969,9 @@ def btn_cliente_guardar():
     # ———————— Validación: todos los ENUM deben tener valor ————————
     if not genero or not estado_civil or not movilidad or not estado_mental:
         mensaje = 'faltan_campos'
-        # Puedes enviar de vuelta los datos que sí se completaron para no obligar a reingresarlos:
         return render_template(
             'modulos/clientes/create.html',
             mensaje=mensaje,
-            # Aquí paso los valores recibidos para que el formulario se repueble:
             nombre=nombre,
             apellido1=apellido1,
             apellido2=apellido2,
@@ -263,7 +989,7 @@ def btn_cliente_guardar():
             estado_mental=estado_mental
         )
 
-    # ———————— Preparar INSERT ————————
+    # ———————— Preparar INSERT del residente ————————
     sql = """
     INSERT INTO residentes(
       nombre, apellido1, apellido2, cedula, fecha_nacimiento, genero,
@@ -295,12 +1021,94 @@ def btn_cliente_guardar():
 
     # ———————— Intentar INSERT/commit ————————
     try:
+        # Insertar residente
         cursor.execute(sql, data)
+        residente_id = cursor.lastrowid  # Obtener el ID del residente recién insertado
+        
+        # ========== LOGS ESPECÍFICOS PARA BITÁCORA ==========
+        print("\n" + "="*50)
+        print("📋 PROCESO DE INSERCIÓN EN BITÁCORA")
+        print("="*50)
+        
+        # ———————— Registrar en bitácora de pacientes ————————
+        # ✅ CORREGIDO: Usar current_user.id en lugar de session.get()
+        personal_id = current_user.id
+        print(f"1️⃣ Personal ID desde current_user: {personal_id}")
+        print(f"   - Usuario: {current_user.nombre}")
+        print(f"   - Rol: {current_user.rol}")
+        
+        if not personal_id:
+            print("❌ ERROR: No hay personal_id (usuario no autenticado)")
+            print("   - Esto no debería pasar porque la ruta tiene @login_required")
+        else:
+            # Verificar que el personal_id existe en la tabla usuarios
+            cursor.execute("SELECT id, nombre FROM usuarios WHERE id = %s", (personal_id,))
+            usuario = cursor.fetchone()
+            
+            if not usuario:
+                print(f"❌ ERROR: No existe usuario con ID {personal_id} en tabla 'usuarios'")
+                print("   - Verificar que el ID sea correcto")
+                print("   - La bitácora NO se registrará")
+            else:
+                print(f"2️⃣ Usuario encontrado: {usuario[1]} (ID: {usuario[0]})")
+                
+                # Descripción detallada del nuevo residente
+                descripcion_bitacora = f"""
+Registro de Nuevo Ingreso
+"""
+                
+                sql_bitacora = """
+                INSERT INTO bitacora_pacientes (
+                    residente_id, 
+                    tipo, 
+                    descripcion, 
+                    personal_id, 
+                    estado
+                ) VALUES (%s, %s, %s, %s, %s)
+                """
+                
+                datos_bitacora = (
+                    residente_id,
+                    'observacion',
+                    descripcion_bitacora.strip(),
+                    personal_id,
+                    'activo'
+                )
+                
+                print(f"3️⃣ Datos a insertar en bitácora:")
+                print(f"   - residente_id: {residente_id}")
+                print(f"   - tipo: observacion")
+                print(f"   - personal_id: {personal_id}")
+                print(f"   - estado: activo")
+                print(f"   - descripción: {len(descripcion_bitacora)} caracteres")
+                
+                try:
+                    cursor.execute(sql_bitacora, datos_bitacora)
+                    filas_afectadas = cursor.rowcount
+                    print(f"4️⃣ Filas afectadas en bitácora: {filas_afectadas}")
+                    
+                    if filas_afectadas > 0:
+                        print(f"✅ INSERCIÓN EN BITÁCORA EXITOSA")
+                        # Obtener el ID del registro insertado
+                        bitacora_id = cursor.lastrowid
+                        print(f"   - ID del registro en bitácora: {bitacora_id}")
+                    else:
+                        print(f"❌ INSERCIÓN EN BITÁCORA FALLÓ (0 filas afectadas)")
+                        
+                except mysql.connector.Error as err_bitacora:
+                    print(f"❌ ERROR EN INSERCIÓN DE BITÁCORA:")
+                    print(f"   - Código: {err_bitacora.errno}")
+                    print(f"   - Mensaje: {err_bitacora.msg}")
+                    print(f"   - SQLSTATE: {err_bitacora.sqlstate}")
+                    # No hacer rollback aquí, solo registrar el error
+        
+        print("="*50 + "\n")
+        
         db.database.commit()
+        
     except mysql.connector.Error as err:
         db.database.rollback()
         cursor.close()
-        # Si hay algún otro problema de ENUM mal enviado, err.msg lo detalla.
         mensaje = 'error_insercion'
         return render_template(
             'modulos/clientes/create.html',
@@ -309,11 +1117,23 @@ def btn_cliente_guardar():
             cedula=cedula
         )
     finally:
-        
+        cursor.close()
 
     # ———————— Éxito ————————
-        mensaje = 'insertado'
-    return render_template('modulos/clientes/create.html', mensaje=mensaje, cedula=cedula)
+    mensaje = 'insertado'
+    
+    # Pasar datos del nuevo residente para mostrarlos en el modal
+    return render_template(
+        'modulos/clientes/create.html', 
+        mensaje=mensaje, 
+        cedula=cedula,
+        nuevo_residente={
+            'id': residente_id,
+            'nombre': nombre,
+            'apellido1': apellido1,
+            'cedula': cedula
+        }
+    )
 
 from flask import request, jsonify
 
@@ -340,6 +1160,7 @@ def editar_historial(id):
 
 @app.route('/modulos/clientes/create/edit/<string:id>', methods=['POST'])
 @login_required
+@role_required('administrador', 'medico', 'asistente_administrativo') 
 def btn_cliente_editar_guardar(id):
     # Obtener datos del formulario
     nombre = request.form.get('nombre', '').strip().upper()
@@ -455,6 +1276,7 @@ def buscar():
 
 @app.route('/ver_info/<string:id>', methods=['GET'])
 @login_required
+@role_required('administrador', 'medico', 'enfermeria', 'asistente_administrativo')
 def index_ver_info(id):
     cursor = db.database.cursor(dictionary=True)
     cursor.execute("SELECT * FROM residentes WHERE id = %s", (id,))
@@ -475,6 +1297,7 @@ def index_ver_info(id):
 
 @app.route('/toggle_estado/<int:residente_id>', methods=['POST'])
 @login_required
+@role_required('administrador', 'asistente_administrativo')
 def toggle_estado_residente(residente_id):
     data = request.get_json()
     nuevo_estado = data.get('estado')
@@ -572,15 +1395,18 @@ def generar_horarios(frecuencia_tipo, hora_inicio):
 
 @app.route('/medicacion/nueva/<int:residente_id>', methods=['POST'])
 @login_required
+@role_required("medico")
 def agregar_medicacion(residente_id):
+
+    # 🔐 1. Verificar que sea personal médico
+    if current_user.rol != "medico":
+        abort(403)
 
     medicamento = request.form['medicamento']
     dosis = request.form['dosis']
     via = request.form['via_administracion']
-
     frecuencia_tipo = request.form['frecuencia_tipo']
     frecuencia = texto_frecuencia(frecuencia_tipo)
-
     modo = request.form['modo_horario']
 
     if modo == 'automatico':
@@ -597,26 +1423,47 @@ def agregar_medicacion(residente_id):
 
     cursor = db.database.cursor()
 
-    sql = """
-    INSERT INTO medicacion
-    (residente_id, medicamento, dosis, via_administracion,
-     frecuencia, horarios, fecha_inicio, fecha_fin,
-     notas, creado_por)
-    VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-    """
+    try:
+        # 🟢 INSERT medicación
+        cursor.execute("""
+            INSERT INTO medicacion
+            (residente_id, medicamento, dosis, via_administracion,
+             frecuencia, horarios, fecha_inicio, fecha_fin,
+             notas, creado_por)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+        """, (
+            residente_id, medicamento, dosis, via,
+            frecuencia, horarios, fecha_inicio,
+            fecha_fin, notas, creado_por
+        ))
 
-    cursor.execute(sql, (
-        residente_id, medicamento, dosis, via,
-        frecuencia, horarios, fecha_inicio,
-        fecha_fin, notas, creado_por
-    ))
+        medicacion_id = cursor.lastrowid
 
-    db.database.commit()
-    cursor.close()
+        # 🟢 Crear registro en bitácora
+        descripcion = f"Se prescribió {medicamento} {dosis} vía {via}"
 
-    flash('Medicamento agregado correctamente', 'success')
+        cursor.execute("""
+            INSERT INTO bitacora_pacientes
+            (residente_id, tipo, descripcion, personal_id)
+            VALUES (%s, 'medicacion', %s, %s)
+        """, (
+            residente_id,
+            descripcion,
+            current_user.id
+        ))
+
+        db.database.commit()
+
+    except Exception as e:
+        db.database.rollback()
+        flash("Error al agregar la medicación", "danger")
+        return redirect(url_for('medicacion', residente_id=residente_id))
+
+    finally:
+        cursor.close()
+
+    flash("Medicamento agregado correctamente", "success")
     return redirect(url_for('medicacion', residente_id=residente_id))
-
 
 
 
@@ -624,6 +1471,7 @@ def agregar_medicacion(residente_id):
 
 @app.route('/medicacion/<int:id>/eliminar', methods=['POST'])
 @login_required
+@role_required("administrador")
 def eliminar_medicacion(id):
     cursor = db.database.cursor(dictionary=True)
 
@@ -775,9 +1623,9 @@ def formatear_hora_12h(hora):
 @app.route('/control-diario-medicacion')
 @login_required
 def control_diario():
-    if current_user.rol not in ['enfermeria', 'medico', 'personal_salud', 'administrador']:
+    if current_user.rol not in ['enfermeria', 'farmacia', 'medico', 'personal_salud', 'administrador']:
         flash("No tienes permisos para acceder a esta sección", "danger")
-        return redirect(url_for('index'))
+        return redirect(url_for('index_admin'))
 
     generar_tomas_diarias()
 
@@ -841,7 +1689,7 @@ def control_diario():
         """, (hoy,))
 
         tomas = cursor.fetchall()
-
+        print(f"tomas {tomas} ")
         # 👉 FORMATEO DE HORAS A 12H
         for toma in tomas:
             toma['hora_programada_12h'] = formatear_hora_12h(toma['hora_programada'])
@@ -1083,18 +1931,34 @@ def filtrar_bitacora(residente_id):
 
 @app.route('/bitacora/editar/<int:registro_id>', methods=['POST'])
 @login_required
-def editar_bitacora(registro_id):
-    """Edita un registro de bitácora (con justificación)"""
+def editar_bitacora(registro_id):      
+    # Verificar permisos
+    if current_user.rol not in ['administrador']:
+        flash("No tienes permisos para esta acción", "danger")
+        residente_id = request.form.get('residente_id')
+        if residente_id:
+            return redirect(url_for('bitacora_paciente', residente_id=residente_id))
+        return redirect(url_for('index_admin'))
+    
+    # Obtener datos del formulario
     descripcion = request.form.get('descripcion', '').strip()
     justificacion = request.form.get('justificacion', '').strip()
+    residente_id = request.form.get('residente_id')
     
+    # Validar residente_id
+    if not residente_id:
+        flash("Error: ID de residente no proporcionado", "danger")
+        return redirect(url_for('index_admin'))
+    
+    # Validar descripción
     if not descripcion:
         flash("La descripción no puede estar vacía", "danger")
-        return redirect(url_for('bitacora_paciente', residente_id=request.form.get('residente_id')))
+        return redirect(url_for('bitacora_paciente', residente_id=residente_id))
     
+    # Validar justificación
     if not justificacion:
         flash("Debe proporcionar una justificación para la modificación", "warning")
-        return redirect(url_for('bitacora_paciente', residente_id=request.form.get('residente_id')))
+        return redirect(url_for('bitacora_paciente', residente_id=residente_id))
     
     cursor = db.database.cursor(dictionary=True)
     
@@ -1105,23 +1969,23 @@ def editar_bitacora(registro_id):
         
         if not registro:
             flash("Registro no encontrado", "danger")
-            return redirect(url_for('index_admin'))
+            return redirect(url_for('bitacora_paciente', residente_id=residente_id))
         
-        # Actualizar el registro anterior como modificado
+        # Verificar que el registro pertenezca al residente
+        if str(registro['residente_id']) != str(residente_id):
+            flash("El registro no pertenece al residente especificado", "danger")
+            return redirect(url_for('bitacora_paciente', residente_id=residente_id))
+        
+        # 🔴 ACTUALIZACIÓN CORREGIDA para tu estructura de tabla
+        # SOLO actualizar el registro existente (no crear uno nuevo)
         cursor.execute("""
             UPDATE bitacora_pacientes 
-            SET estado = 'modificado',
+            SET descripcion = %s,
+                justificacion = %s,
                 modificado_por = %s,
-                justificacion = %s
+                estado = 'modificado'
             WHERE id = %s
-        """, (current_user.id, justificacion, registro_id))
-        
-        # Crear nuevo registro con los datos actualizados
-        cursor.execute("""
-            INSERT INTO bitacora_pacientes 
-            (residente_id, tipo, descripcion, personal_id, fecha_hora, estado)
-            VALUES (%s, %s, %s, %s, NOW(), 'activo')
-        """, (registro['residente_id'], registro['tipo'], descripcion, current_user.id))
+        """, (descripcion, justificacion, current_user.id, registro_id))
         
         db.database.commit()
         flash("Registro actualizado correctamente", "success")
@@ -1129,10 +1993,11 @@ def editar_bitacora(registro_id):
     except Exception as e:
         db.database.rollback()
         flash(f"Error al actualizar: {str(e)}", "danger")
+        print(f"Error en editar_bitacora: {str(e)}")
     finally:
         cursor.close()
     
-    return redirect(url_for('bitacora_paciente', residente_id=registro['residente_id']))
+    return redirect(url_for('bitacora_paciente', residente_id=residente_id))
 
 @app.route('/bitacora/reporte-diario')
 @login_required
@@ -1260,7 +2125,7 @@ def registrar_medicacion_automatica(admin_id):
 @app.route('/medicacion/administrar/<int:admin_id>', methods=['POST'])
 @login_required
 def administrar_medicacion(admin_id):
-    if current_user.rol not in ['enfermeria', 'medico', 'personal_salud', 'administrador']:
+    if current_user.rol not in ['enfermeria','farmacia', 'medico', 'personal_salud', 'administrador']:
         flash("No tienes permisos para esta acción", "danger")
         return redirect('/control-diario-medicacion')
     
@@ -1444,11 +2309,19 @@ Registrado por: {current_user.nombre}
 
 @app.route('/historial_medico/<int:registro_id>/editar', methods=['POST'])
 def editar_registro_medico(registro_id):
-    if not request.is_xhr:  # o usa: if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+    # Verificar si es una petición AJAX
+    if not request.is_xhr and request.headers.get('X-Requested-With') != 'XMLHttpRequest':
         return jsonify({'error': 'Acceso no permitido'}), 403
-
+    
+    # Verificar permisos de usuario
+    if current_user.rol not in ['administrador']:
+        return jsonify({'error': 'No tienes permisos para esta acción'}), 403
+    
+    # Obtener el registro médico
     registro = RegistroMedico.query.get_or_404(registro_id)
-
+    
+    # Aquí continuaría el resto de tu lógica para editar el registro
+    # ...
     try:
         fecha = request.form['fecha']
         diagnostico = request.form['diagnostico']
@@ -1719,7 +2592,7 @@ def roles():
 
 @app.route('/camas')
 @login_required
-@role_required('administrador', 'enfermeria', 'medico')
+@role_required('administrador', 'enfermeria', 'medico', 'asistente_administrativo') 
 def listar_camas():
     """Lista todas las camas del centro"""
     # Inicializar variables con valores por defecto
@@ -1981,7 +2854,7 @@ Actualizado por: {current_user.nombre}
 
 @app.route('/camas/<int:cama_id>/cambiar-estado', methods=['POST'])
 @login_required
-@role_required('administrador', 'enfermeria')
+@role_required('administrador', 'enfermeria', 'asiste_administrativo')
 def cambiar_estado_cama(cama_id):
     """Cambia el estado de una cama"""
     nuevo_estado = request.form.get('estado')
@@ -2042,7 +2915,7 @@ Cambiado por: {current_user.nombre}
 
 @app.route('/camas/asignar/<int:residente_id>', methods=['GET', 'POST'])
 @login_required
-@role_required('enfermeria', 'medico', 'administrador')
+@role_required('enfermeria', 'medico', 'administrador', 'asistente_administrativo')
 def asignar_cama(residente_id):
     """Asigna una cama a un residente"""
     cursor = db.database.cursor(dictionary=True)
@@ -2115,11 +2988,10 @@ def asignar_cama(residente_id):
             # Bitácora
             descripcion_bitacora = f"""
 ASIGNACIÓN DE CAMA:
-Residente: {residente['nombre']} {residente['apellido1']}
 Cama asignada: {cama['numero']} (Habitación: {cama['habitacion']})
 Motivo: {motivo}
 Observaciones: {observaciones}
-Asignado por: {current_user.nombre}
+
             """.strip()
             
             cursor.execute("""
@@ -2186,7 +3058,7 @@ Asignado por: {current_user.nombre}
 
 @app.route('/camas/liberar/<int:asignacion_id>', methods=['POST'])
 @login_required
-@role_required('enfermeria', 'medico', 'administrador')
+@role_required('enfermeria', 'medico', 'administrador', 'asistente_administrativo')
 def liberar_cama(asignacion_id):
     """Libera una cama ocupada"""
     cursor = db.database.cursor(dictionary=True)
@@ -2239,7 +3111,7 @@ def liberar_cama(asignacion_id):
 
 @app.route('/camas/dashboard')
 @login_required
-@role_required('administrador', 'enfermeria', 'medico')
+@role_required('administrador', 'enfermeria', 'medico', 'asistente_administrativo')
 def dashboard_camas():
     """Dashboard con estadísticas detalladas de camas"""
     cursor = db.database.cursor(dictionary=True)
@@ -2363,7 +3235,7 @@ def dashboard_camas():
 
 @app.route('/camas/asignar/seleccionar-residente')
 @login_required
-@role_required('administrador', 'enfermeria')
+@role_required('administrador', 'enfermeria', 'medico', 'asistente_administrativo')
 def seleccionar_residente_asignacion():
     """Lista residentes sin cama para asignación"""
     cursor = db.database.cursor(dictionary=True)
@@ -2494,7 +3366,7 @@ def dateformat(value, format='%d/%m/%Y'):
 
 
 # ============================================
-# MÓDULO DE INVENTARIOS - VERSIÓN TESINA
+# MÓDULO DE INVENTARIOS - TESINA
 # ============================================
 
 # ------------------------------------------------------------
@@ -2502,7 +3374,7 @@ def dateformat(value, format='%d/%m/%Y'):
 # ------------------------------------------------------------
 @app.route('/inventario/insumos')
 @login_required
-@role_required('bodega', 'farmacia', 'administrador')
+@role_required('bodega', 'farmacia', 'administrador', 'asistente_administrativo')
 def listar_insumos():
     """Lista todos los insumos del inventario"""
     cursor = db.database.cursor(dictionary=True)
@@ -2559,7 +3431,7 @@ def listar_insumos():
 # ------------------------------------------------------------
 @app.route('/inventario/insumos/nuevo', methods=['GET', 'POST'])
 @login_required
-@role_required('bodega', 'farmacia', 'administrador')
+@role_required('bodega', 'farmacia', 'administrador', 'asistente_administrativo')
 def nuevo_insumo():
     """Crea un nuevo insumo"""
     cursor = db.database.cursor(dictionary=True)
@@ -2774,7 +3646,6 @@ def ajustar_stock(insumo_id):
 @login_required
 @role_required('bodega', 'administrador')
 def eliminar_insumo(insumo_id):
-    """Desactiva un insumo (no lo elimina físicamente)"""
     cursor = db.database.cursor()
     
     try:
@@ -2795,7 +3666,7 @@ def eliminar_insumo(insumo_id):
 # ------------------------------------------------------------
 @app.route('/inventario/proveedores')
 @login_required
-@role_required('bodega', 'administrador')
+@role_required('bodega', 'administrador', 'asistente_administrativo')
 def listar_proveedores():
     """Lista todos los proveedores"""
     cursor = db.database.cursor(dictionary=True)
@@ -2921,7 +3792,7 @@ def editar_proveedor(proveedor_id):
 # ------------------------------------------------------------
 @app.route('/inventario/proveedores/<int:proveedor_id>/eliminar', methods=['POST'])
 @login_required
-@role_required('bodega', 'administrador')
+@role_required('administrador')
 def eliminar_proveedor(proveedor_id):
     """Desactiva un proveedor"""
     cursor = db.database.cursor()
@@ -2944,7 +3815,7 @@ def eliminar_proveedor(proveedor_id):
 # ------------------------------------------------------------
 @app.route('/inventario/ordenes-compra')
 @login_required
-@role_required('bodega', 'administrador')
+@role_required('bodega', 'administrador', 'asistente_administrativo')
 def listar_ordenes_compra():
     """Lista todas las órdenes de compra"""
     cursor = db.database.cursor(dictionary=True)
@@ -2975,7 +3846,7 @@ def listar_ordenes_compra():
 # ------------------------------------------------------------
 @app.route('/inventario/ordenes-compra/nueva', methods=['GET', 'POST'])
 @login_required
-@role_required('bodega', 'administrador')
+@role_required('bodega', 'administrador' , 'asistente_administrativo')
 def nueva_orden_compra():
     """Crea una nueva orden de compra"""
     cursor = db.database.cursor(dictionary=True)
@@ -3127,7 +3998,7 @@ def agregar_detalle_orden(orden_id):
 # ------------------------------------------------------------
 @app.route('/inventario/ordenes-compra/eliminar-detalle/<int:detalle_id>', methods=['POST'])
 @login_required
-@role_required('bodega', 'administrador')
+@role_required('administrador')
 def eliminar_detalle_orden(detalle_id):
     """Elimina un detalle de la orden de compra"""
     cursor = db.database.cursor()
@@ -3191,7 +4062,7 @@ def cambiar_estado_orden(orden_id):
 # ------------------------------------------------------------
 @app.route('/inventario/ordenes-compra/<int:orden_id>/recibir', methods=['POST'])
 @login_required
-@role_required('bodega', 'administrador')
+@role_required('bodega', 'administrador' , 'asistente_administrativo')
 def recibir_orden_compra(orden_id):
     """Marca orden como recibida y actualiza stock"""
     cursor = db.database.cursor(dictionary=True)

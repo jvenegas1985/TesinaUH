@@ -1,9 +1,24 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Inventarios - Centro Geriátrico{% endblock %}</title>
+    <nav class="navbar navbar-dark bg-primary shadow-sm">
+    <div class="container-fluid">
+        <span class="navbar-brand fw-bold">
+            <i class="fas fa-home me-2"></i>Centro Geriátrico Camino Dorado
+        </span>
+        <div class="text-white d-flex align-items-center">
+            <i class="fas fa-user-circle me-2"></i>
+            <span class="me-3">
+                {{ current_user.nombre }} 
+                <span class="badge bg-light text-dark ms-1">{{ current_user.rol }}</span>
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-light">
+                <i class="fas fa-sign-out-alt me-1"></i> Salir
+            </a>
+        </div>
+    </div>
+</nav>
+    
     
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -60,52 +75,29 @@
 <body>
     <div class="container-fluid">
         <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-2 p-0 sidebar">
-                <div class="p-3">
-                    <h5 class="text-white mb-4">
-                        <i class="fas fa-boxes me-2"></i>Inventarios
-                    </h5>
-                    <nav class="nav flex-column">
-                        <a class="nav-link {% if request.endpoint == 'listar_insumos' %}active{% endif %}" 
-                           href="{{ url_for('listar_insumos') }}">
-                            <i class="fas fa-box me-2"></i> Insumos
-                        </a>
-                        <a class="nav-link {% if request.endpoint == 'listar_proveedores' %}active{% endif %}" 
-                           href="{{ url_for('listar_proveedores') }}">
-                            <i class="fas fa-truck me-2"></i> Proveedores
-                        </a>
-                        <a class="nav-link {% if request.endpoint == 'listar_ordenes_compra' %}active{% endif %}" 
-                           href="{{ url_for('listar_ordenes_compra') }}">
-                            <i class="fas fa-shopping-cart me-2"></i> Órdenes de Compra
-                        </a>
-                        <hr class="bg-secondary">
-                        <a class="nav-link" href="{{ url_for('index_admin') }}">
-                            <i class="fas fa-home me-2"></i> Panel Principal
-                        </a>
-                    </nav>
+        <nav class="navbar navbar-dark bg-primary shadow-sm">
+    <div class="container-fluid">
+        <span class="navbar-brand fw-bold">
+            <i class="fas fa-home me-2"></i>Centro Geriátrico Camino Dorado
+        </span>
+        <div class="text-white d-flex align-items-center">
+            <i class="fas fa-user-circle me-2"></i>
+            <span class="me-3">
+                {{ current_user.nombre }} 
+                <span class="badge bg-light text-dark ms-1">{{ current_user.rol }}</span>
+            </span>
+            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-light">
+                <i class="fas fa-sign-out-alt me-1"></i> Salir
+            </a>
+        </div>
+    </div>
+</nav>-->
+            
                 </div>
             </div>
             
             <!-- Contenido principal -->
-            <div class="col-md-10 p-0">
-                <!-- Navbar superior -->
-                <nav class="navbar navbar-expand navbar-light bg-white shadow-sm px-4">
-                    <div class="container-fluid">
-                        <span class="navbar-brand mb-0 h6">
-                            {% block module_title %}Inventarios{% endblock %}
-                        </span>
-                        <div class="d-flex align-items-center">
-                            <span class="me-3">
-                                <i class="fas fa-user-circle me-1"></i>
-                                {{ current_user.nombre }} ({{ current_user.rol }})
-                            </span>
-                            <a href="{{ url_for('logout') }}" class="btn btn-sm btn-outline-danger">
-                                <i class="fas fa-sign-out-alt me-1"></i> Salir
-                            </a>
-                        </div>
-                    </div>
-                </nav>
+            
                 
                 <!-- Mensajes Flash -->
                 <div class="container-fluid px-4 mt-3">

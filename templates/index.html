@@ -43,6 +43,11 @@
             line-height: 1.4;
             color: #666;
         }
+        .badge-rol {
+            font-size: 0.7rem;
+            padding: 0.2rem 0.4rem;
+            margin-left: 0.3rem;
+        }
     </style>
 </head>
 
@@ -55,7 +60,10 @@
         </span>
         <div class="text-white d-flex align-items-center">
             <i class="fas fa-user-circle me-2"></i>
-            <span class="me-3">{{ current_user.nombre }} ({{ current_user.rol }})</span>
+            <span class="me-3">
+                {{ current_user.nombre }} 
+                <span class="badge bg-light text-dark ms-1">{{ current_user.rol }}</span>
+            </span>
             <a href="{{ url_for('logout') }}" class="btn btn-sm btn-light">
                 <i class="fas fa-sign-out-alt me-1"></i> Salir
             </a>
@@ -88,13 +96,21 @@
 
     <div class="row g-4">
 
-        <!-- ADMINISTRADOR -->
-        {% if current_user.rol == 'administrador' %}
+        <!-- ============================================= -->
+        <!-- MÓDULO 1: ADMINISTRACIÓN GENERAL              -->
+        <!-- Visible para: administrador, asistente_administrativo -->
+        <!-- ============================================= -->
+        {% if current_user.rol in ['administrador', 'asistente_administrativo'] %}
         <div class="col-md-3">
-            <div class="card card-menu text-center">
+            <div class="card card-menu text-center border-primary">
                 <div class="card-body">
                     <i class="fas fa-cogs icono text-primary"></i>
-                    <h6 class="mb-3">Administración General</h6>
+                    <h6 class="mb-3">
+                        Administración General
+                        {% if current_user.rol == 'asistente_administrativo' %}
+                            <span class="badge bg-info badge-rol">Total</span>
+                        {% endif %}
+                    </h6>
                     <div class="d-grid gap-2">
                         <a href="/admin/usuarios" class="btn btn-outline-primary btn-modulo">
                             <i class="fas fa-users me-1"></i> Usuarios
@@ -102,40 +118,54 @@
                         <a href="/roles" class="btn btn-outline-primary btn-modulo">
                             <i class="fas fa-user-tag me-1"></i> Roles
                         </a>
-                        <a href="/bitacora-accesos" class="btn btn-outline-primary btn-modulo">
-                            <i class="fas fa-clipboard-list me-1"></i> Bitácora
+                        <a href="{{ url_for('listar_familiares') }}" class="btn btn-outline-primary btn-modulo">
+                        <i class="fas fa-people-arrows me-1"></i> Familiares
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-
-        <!-- MÉDICO -->
-        {% if current_user.rol in ['medico', 'personal_salud', 'administrador'] %}
-        <div class="col-md-3">
-            <div class="card card-menu text-center">
-                <div class="card-body">
-                    <i class="fas fa-heartbeat icono text-success"></i>
-                    <h6 class="mb-3">Módulo Médico</h6>
-                    <div class="d-grid gap-2 mb-3">
-                        <a href="/residentes" class="btn btn-outline-success btn-modulo">
-                            <i class="fas fa-search me-1"></i> Buscar Residente
-                        </a>
-                        <a href="/create" class="btn btn-success btn-modulo">
-                            <i class="fas fa-user-plus me-1"></i> Nuevo Residente
-                        </a>
+                        
                     </div>
                     <p class="descripcion-modulo mb-0">
-                        Gestión completa de residentes y su historial clínico
+                        Gestión completa de usuarios, roles y accesos
                     </p>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <!-- BITÁCORA CLÍNICA -->
-        {% if current_user.rol in ['cuidador', 'administrador', 'enfermeria', 'medico', 'personal_salud'] %}
+        <!-- ============================================= -->
+        <!-- MÓDULO 2: RESIDENTES / MÓDULO MÉDICO          -->
+        <!-- Visible para: TODOS los roles activos         -->
+        <!-- ============================================= -->
+        {% if current_user.rol in ['administrador', 'asistente_administrativo', 'medico', 'enfermeria', 'cuidador', 'personal_salud', 'bodega', 'farmacia'] %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-heartbeat icono text-success"></i>
+                    <h6 class="mb-3">
+                        Módulo de Residentes
+                    </h6>
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="/residentes" class="btn btn-outline-success btn-modulo">
+                            <i class="fas fa-search me-1"></i> Buscar Residente
+                        </a>
+                        
+                        <!-- Crear residente - TODOS pueden (administrador y asistente incluidos) -->
+                        <a href="/create" class="btn btn-success btn-modulo">
+                            <i class="fas fa-user-plus me-1"></i> Nuevo Residente
+                        </a>
+                    </div>
+                    <p class="descripcion-modulo mb-0">
+                        Gestión completa de residentes
+                    </p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- ============================================= -->
+        <!-- MÓDULO 3: BITÁCORA CLÍNICA                    -->
+        <!-- Visible para: TODOS los roles                 -->
+        <!-- ============================================= -->
+        {% if current_user.rol in ['administrador', 'asistente_administrativo', 'medico', 'enfermeria', 'cuidador', 'personal_salud', 'bodega', 'farmacia'] %}
         <div class="col-md-3">
             <div class="card card-menu text-center">
                 <div class="card-body">
@@ -143,25 +173,25 @@
                     <h6 class="mb-3">Bitácora Clínica</h6>
                     <div class="d-grid gap-2 mb-3">
                         <a href="/bitacora/buscar-paciente" class="btn btn-warning btn-modulo">
-                            <i class="fas fa-search me-1"></i> Buscar Paciente
+                            <i class="fas fa-search me-1"></i> Buscar Residente
                         </a>
-                        {% if current_user.rol in ['administrador', 'supervisor', 'medico'] %}
-                        <a href="{{ url_for('reporte_bitacora_diario') }}" 
-                           class="btn btn-outline-warning btn-modulo">
-                            <i class="fas fa-chart-bar me-1"></i> Reportes
-                        </a>
-                        {% endif %}
+                        
+                        <!-- Reportes - TODOS pueden -->
+                        
                     </div>
                     <p class="descripcion-modulo mb-0">
-                        Registro diario de actividades y seguimiento de pacientes
+                        Registro de actividades y novedades
                     </p>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <!-- ENFERMERÍA / MEDICACIONES -->
-        {% if current_user.rol in ['enfermeria', 'administrador'] %}
+        <!-- ============================================= -->
+        <!-- MÓDULO 4: MEDICACIÓN                           -->
+        <!-- Visible para: TODOS los roles                 -->
+        <!-- ============================================= -->
+        {% if current_user.rol in ['administrador', 'asistente_administrativo', 'medico', 'enfermeria', 'cuidador', 'personal_salud', 'bodega', 'farmacia'] %}
         <div class="col-md-3">
             <div class="card card-menu text-center">
                 <div class="card-body">
@@ -169,25 +199,28 @@
                     <h6 class="mb-3">Gestión de Medicación</h6>
                     <div class="d-grid gap-2 mb-3">
                         <a href="/medicaciones/tratamientos-activos" class="btn btn-outline-info btn-modulo">
-                            <i class="fas fa-prescription me-1"></i> Asignación
+                            <i class="fas fa-prescription me-1"></i> Ver Tratamientos
                         </a>
+                        
                         <a href="/control-diario-medicacion" class="btn btn-outline-info btn-modulo">
                             <i class="fas fa-calendar-check me-1"></i> Control Diario
                         </a>
-                        <a href="/alertas-medicacion" class="btn btn-outline-info btn-modulo">
-                            <i class="fas fa-bell me-1"></i> Alertas
-                        </a>
+                        
+                        
                     </div>
                     <p class="descripcion-modulo mb-0">
-                        Control y administración de medicamentos
+                        Control completo de medicamentos
                     </p>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <!-- MÓDULO DE CAMAS -->
-        {% if current_user.rol in ['administrador', 'enfermeria', 'medico'] %}
+        <!-- ============================================= -->
+        <!-- MÓDULO 5: CAMAS                                -->
+        <!-- Visible para: TODOS los roles                 -->
+        <!-- ============================================= -->
+        {% if current_user.rol in ['administrador', 'asistente_administrativo', 'medico', 'enfermeria', 'cuidador', 'personal_salud', 'bodega', 'farmacia'] %}
         <div class="col-md-3">
             <div class="card card-menu text-center">
                 <div class="card-body">
@@ -198,96 +231,105 @@
                             <i class="fas fa-list me-1"></i> Ver Camas
                         </a>
                         
-                        {% if current_user.rol in ['administrador', 'enfermeria'] %}
-<a href="{{ url_for('seleccionar_residente_asignacion') }}" class="btn btn-outline-secondary btn-modulo">
-    <i class="fas fa-user-plus me-1"></i> Asignar Cama
-</a>
-{% endif %}
+                        <a href="{{ url_for('seleccionar_residente_asignacion') }}" class="btn btn-outline-secondary btn-modulo">
+                            <i class="fas fa-user-plus me-1"></i> Asignar Cama
+                        </a>
                         
                         <a href="{{ url_for('dashboard_camas') }}" class="btn btn-secondary btn-modulo">
                             <i class="fas fa-chart-bar me-1"></i> Dashboard
                         </a>
                     </div>
                     <p class="descripcion-modulo mb-0">
-                        Control de ocupación y asignación de camas
+                        Control total de ocupación de camas
                     </p>
                 </div>
             </div>
         </div>
         {% endif %}
 
-        <!-- INVENTARIOS -->
-        <!-- INVENTARIOS -->
-{% if current_user.rol in ['bodega', 'farmacia', 'administrador'] %}
-<div class="col-md-3">
-    <div class="card card-menu text-center">
-        <div class="card-body">
-            <i class="fas fa-boxes icono text-danger"></i>
-            <h6 class="mb-3">Inventarios</h6>
-            <div class="d-grid gap-2 mb-3">
-                <a href="{{ url_for('listar_insumos') }}" class="btn btn-outline-danger btn-modulo">
-                    <i class="fas fa-box me-1"></i> Insumos
-                </a>
-                <a href="{{ url_for('listar_ordenes_compra') }}" class="btn btn-outline-danger btn-modulo">
-                    <i class="fas fa-shopping-cart me-1"></i> Órdenes
-                </a>
-                <a href="{{ url_for('listar_proveedores') }}" class="btn btn-outline-danger btn-modulo">
-                    <i class="fas fa-truck me-1"></i> Proveedores
-                </a>
-            </div>
-            <p class="descripcion-modulo mb-0">
-                Control de inventario y proveedores
-            </p>
-        </div>
-    </div>
-</div>
-{% endif %}
-<!-- MODAL AVISO ACADÉMICO -->
-{% if session.get('mostrar_modal') %}
-<div class="modal fade" id="modalAviso" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title">
-                    <i class="fas fa-graduation-cap me-2"></i>
-                    Aviso Académico - Tesina de Bachillerato
-                </h5>
-            </div>
-            <div class="modal-body">
-                <div class="text-center mb-4">
-                    <i class="fas fa-university text-primary" style="font-size: 3rem;"></i>
-                    <h6 class="mt-2 text-primary">Universidad Hispanoamericana</h6>
-                </div>
-                
-                <div class="alert alert-info">
-                    <h6 class="alert-heading">Propósito del Sistema</h6>
-                    <p class="mb-0">
-                        Este software ha sido desarrollado exclusivamente con fines académicos 
-                        como parte del proyecto de tesina para optar por el grado de 
-                        <strong>Bachillerato en Ingeniería en Informática</strong>.
-                    </p>
-                </div>
-                
-                <div class="alert alert-warning">
-                    <h6 class="alert-heading">Declaración de Datos</h6>
-                    <p class="mb-0">
-                        <i class="fas fa-exclamation-triangle me-1"></i>
-                        <strong>Todos los datos son ficticios:</strong> La información mostrada 
-                        en este sistema es completamente simulada y no corresponde a datos 
-                        reales de pacientes, personal médico o cualquier entidad real.
+        <!-- ============================================= -->
+        <!-- MÓDULO 6: INVENTARIOS                          -->
+        <!-- Visible para: TODOS los roles                 -->
+        <!-- ============================================= -->
+        {% if current_user.rol in ['administrador', 'asistente_administrativo', 'medico', 'enfermeria', 'cuidador', 'personal_salud', 'bodega', 'farmacia'] %}
+        <div class="col-md-3">
+            <div class="card card-menu text-center">
+                <div class="card-body">
+                    <i class="fas fa-boxes icono text-danger"></i>
+                    <h6 class="mb-3">Inventarios</h6>
+                    <div class="d-grid gap-2 mb-3">
+                        <a href="{{ url_for('listar_insumos') }}" class="btn btn-outline-danger btn-modulo">
+                            <i class="fas fa-box me-1"></i> Insumos
+                        </a>
+                        
+                        <a href="{{ url_for('listar_ordenes_compra') }}" class="btn btn-outline-danger btn-modulo">
+                            <i class="fas fa-shopping-cart me-1"></i> Órdenes
+                        </a>
+                        
+                        <a href="{{ url_for('listar_proveedores') }}" class="btn btn-outline-danger btn-modulo">
+                            <i class="fas fa-truck me-1"></i> Proveedores
+                        </a>
+                    </div>
+                    <p class="descripcion-modulo mb-0">
+                        Control completo de inventario
                     </p>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">
-                    <i class="fas fa-check-circle me-2"></i>
-                    Entiendo y acepto
-                </button>
+        </div>
+        {% endif %}
+
+    </div> <!-- Cierra row -->
+
+    <!-- ============================================= -->
+    <!-- MODAL AVISO ACADÉMICO (sin cambios)          -->
+    <!-- ============================================= -->
+    {% if session.get('mostrar_modal') %}
+    <div class="modal fade" id="modalAviso" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-graduation-cap me-2"></i>
+                        Aviso Académico - Tesina de Bachillerato
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-university text-primary" style="font-size: 3rem;"></i>
+                        <h6 class="mt-2 text-primary">Universidad Hispanoamericana</h6>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">Propósito del Sistema</h6>
+                        <p class="mb-0">
+                            Este software ha sido desarrollado exclusivamente con fines académicos 
+                            como parte del proyecto de tesina para optar por el grado de 
+                            <strong>Bachillerato en Ingeniería en Informática</strong>.
+                        </p>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <h6 class="alert-heading">Declaración de Datos</h6>
+                        <p class="mb-0">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Todos los datos son ficticios:</strong> La información mostrada 
+                            en este sistema es completamente simulada y no corresponde a datos 
+                            reales de pacientes, personal médico o cualquier entidad real.
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Entiendo y acepto
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-{% endif %}
+    {% endif %}
+
+</div> <!-- Cierra container -->
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
